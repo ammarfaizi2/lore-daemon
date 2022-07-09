@@ -3,5 +3,4 @@
 # Copyright (C) 2022  Muhammad Rizki <riskimuhammmad1@gmail.com>
 #
 
-from .job import Job
 from .database import Database

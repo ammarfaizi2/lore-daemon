@@ -24,7 +24,7 @@ CREATE TABLE `tg_emails` (
   `email_id` bigint unsigned NOT NULL,
   `chat_id` bigint NOT NULL,
   `tg_msg_id` bigint unsigned NOT NULL,
-  `created_at` bigint unsigned NOT NULL,
+  `created_at` datetime NOT NULL,
   PRIMARY KEY (`id`),
   KEY `email_id` (`email_id`),
   KEY `chat_id` (`chat_id`),

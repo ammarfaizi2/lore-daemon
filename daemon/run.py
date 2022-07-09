@@ -4,8 +4,9 @@
 #
 
 from pyrogram import Client
-from packages import Job
+from packages import Job, Database
 
+from mysql import connector
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 import os
@@ -22,11 +23,21 @@ bot = Client(
 	)
 )
 
+conn = connector.connect(
+    host="localhost",
+    user="root",
+    database="lore_daemon"
+)
+
+db = Database(conn)
+
 sched = AsyncIOScheduler()
 sched.start()
 
-job = Job(client=bot, job=sched)
-# job.listen_for_new_thread()
+job = Job(client=bot, job=sched, database=db)
+job.listen_for_new_thread()
 
 if __name__ == '__main__':
 	bot.run()
+	db.cur.close()
+	db.conn.close()
