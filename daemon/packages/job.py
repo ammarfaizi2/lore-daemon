@@ -4,16 +4,14 @@
 #
 
 from .database import Database
-from .database.structs import Emails, TGEmails
 
 from scrapper import Scrapper, utils
 
 from pyrogram import Client, enums
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-from typing import Union
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-import os
+import shutil, asyncio
 
 class Job():
 	def __init__(
@@ -27,35 +25,19 @@ class Job():
 		self.db = database
 
 	async def __listening(self):
-		s = Scrapper()
-		thread, thread_url = await s.see_new_thread()
+		s = Scrapper(database=self.db)
 
-		msg_id = (
-			thread.get("message-id", "")
-			.replace("<", "")
-			.replace(">", "")
-		)
+		for thread, url, msg_id in await s.see_new_thread():
+			email = self.db.get_email(msg_id)
+			reply_to = None
+			in_reply_to = thread.get("in-reply-to")
 
-		in_reply_to = (
-			thread.get("in-reply-to", "")
-			.replace("<", "")
-			.replace(">", "")
-		)
+			if email:
+				continue
 
-		email: Union["Emails", None] = (
-			self.db.get_email(msg_id)
-		)
-
-		if not email:
 			if in_reply_to:
-				reply_email: Union["TGEmails", None] = (
-					self.db.reply_to(in_reply_to)
-				)
-
-				if reply_email:
-					reply_to = reply_email.tg_msg_id
-				else:
-					reply_to = None
+				in_reply_id = utils.extract_email_id(str(in_reply_to))
+				reply_to = self.db.reply_to(in_reply_id)
 
 			template, files = utils.create_template(thread)
 
@@ -67,17 +49,22 @@ class Job():
 				reply_markup=InlineKeyboardMarkup([
 					[InlineKeyboardButton(
 						"See the full message",
-						url=thread_url.replace("/raw","")
+						url=url
 					)]
 				])
 			)
 
-			for f in files:
-				await m.reply_document(f, file_name=f, quote=True)
-				os.remove(f)
+			for d, f in files:
+				await m.reply_document(f"{d}/{f}", file_name=f)
+				await asyncio.sleep(1) # use sleep to avoid telegram flood
+
+			if files:
+				shutil.rmtree(str(files[0][0]))
 
 			email_id = self.db.insert_email(msg_id)
 			self.db.insert_telegram(email_id, m.chat.id, m.id)
+
+			await asyncio.sleep(10) # use sleep to avoid telegram flood
 
 	def listen_for_new_thread(self):
 		# Schedule job every 5 seconds in interval

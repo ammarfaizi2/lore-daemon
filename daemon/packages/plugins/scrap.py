@@ -16,7 +16,7 @@ import shutil
 )
 async def scrap_email(_, m: Message):
 	s = Scrapper(m.text)
-	thread, thread_url = await s.see_new_thread()
+	thread, url, msg_id = await s.see_new_thread()
 
 	template, files = utils.create_template(thread)
 
@@ -27,7 +27,7 @@ async def scrap_email(_, m: Message):
 			[
 				[InlineKeyboardButton(
 					"See the full message",
-					url=thread_url.replace("/raw","")
+					url=url.replace("/raw","")
 				)]
 			]
 		)

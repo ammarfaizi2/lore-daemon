@@ -28,13 +28,16 @@ SQL_TG_INSERT = """
 """
 
 SQL_CHECK_MSG_ID = """
-	SELECT * FROM emails
+	SELECT id FROM emails
 	WHERE message_id = %(msg_id)s
 """
 
 SQL_REPLY_TO = """
-	SELECT * FROM tg_emails
-	WHERE email_id = %(email_id)s
+	SELECT tg_emails.tg_msg_id
+	FROM tg_emails
+	INNER JOIN emails
+	ON emails.id = tg_emails.email_id
+	WHERE emails.message_id = %(msg_id)s
 """
 
 SQL_GET_EMAILS = """

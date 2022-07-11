@@ -24,14 +24,19 @@ bot = Client(
 )
 
 conn = connector.connect(
-    host="localhost",
-    user="root",
-    database="lore_daemon"
+	host="localhost",
+	user="root",
+	database="cuman_tst"
 )
 
 db = Database(conn)
 
-sched = AsyncIOScheduler()
+sched = AsyncIOScheduler(
+	job_defaults={
+		'max_instances': 5,
+		'misfire_grace_time': 15*60
+	}
+)
 sched.start()
 
 job = Job(client=bot, job=sched, database=db)

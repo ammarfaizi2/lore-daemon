@@ -12,10 +12,10 @@ class Emails:
 	message_id: str
 	created_at: datetime
 
-@dataclass
-class TGEmails:
-	id: int
-	email_id: int
-	chat_id: int
-	tg_msg_id: int
-	created_at: datetime
+# @dataclass
+# class TGEmails:
+# 	id: int
+# 	email_id: int
+# 	chat_id: int
+# 	tg_msg_id: int
+# 	created_at: datetime

@@ -5,7 +5,7 @@
 
 from email.message import Message
 from typing import Dict
-import hashlib, os, uuid
+import hashlib, os, uuid, re
 
 def extract_list(key: str, content: Dict[str, str]):
 	if not bool(content.get(key.lower())):
@@ -18,34 +18,41 @@ def consruct_to_n_cc(to: list, cc: list):
 	for t in to[:10]:
 		template += f"To: {t}\n"
 
-	if len(to) >= 10:
-		template += "To: ...\n"
-		template += "Cc: ...\n" if len(cc) != 0 else ""
+		if to.index(t) >= 10:
+			template += "To: ..."
+
+	if len(to) >= 10 and len(cc) != 0:
+		template += "Cc: ...\n"
 
 	elif len(cc) != 0:
 		substr = 10 - len(to)
 
 		for c in cc[:substr]:
 			template += f"Cc: {c}\n"
-		else:
-			template += "Cc: ...\n"
+
+			if cc.index(c) >= 10:
+				template += "Cc: ..."
 
 	return template
 
 def extract_body(thread: Message):
 	if not thread.is_multipart():
-		return f"{thread.get_payload(decode=True).decode()}\n".lstrip(), []
+		p = thread.get_payload(decode=True)
+		return f"{p.decode(errors='replace')}\n".lstrip(), []
 
 	ret = ""
 	files = []
-	temp = gen_temp(str(thread.get("message-id", uuid.uuid4())))
+	temp = gen_temp(str(uuid.uuid4()))
 
 	for p in thread.get_payload():
 		fname = p.get_filename()
 		payload = p.get_payload(decode=True)
 
+		if not payload:
+			continue
+
 		if 'inline' in [p.get('content-disposition')] or not bool(fname):
-			ret += f"{payload.decode()}\n".lstrip()
+			ret += f"{payload.decode(errors='replace')}\n".lstrip()
 			continue
 
 		with open(f"{temp}/{fname}", "wb") as f:
@@ -71,6 +78,7 @@ def create_template(thread: Message):
 		.rstrip()
 		.replace("<", "&lt;")
 		.replace(">","&gt;")
+		.replace("�"," ")
 	) + "\n<code>------------------------------------------------------------------------</code>"
 
 	return template, files
@@ -79,3 +87,9 @@ def gen_temp(name: str):
 	md5 = hashlib.md5(name.encode()).hexdigest()
 	os.mkdir(md5)
 	return md5
+
+def extract_email_id(text: str):
+	return re.search(r"<([^\<\>]+)>", text).group(1)
+
+def email_id_from_url(text: str):
+	return text.split("/")[-2]

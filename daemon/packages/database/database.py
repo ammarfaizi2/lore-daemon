@@ -4,9 +4,10 @@
 #
 
 from . import helper
-from .structs import Emails, TGEmails
+from .structs import Emails
+from scrapper import utils
 
-from typing import Union
+from typing import Union, List, Dict
 from datetime import datetime
 
 class Database:
@@ -16,16 +17,15 @@ class Database:
 		self.conn.autocommit = True
 
 	def insert_email(self, msg_id: str):
-		if self.get_email(msg_id):
-			return
-
-		self.cur.execute(
-			helper.SQL_EMAIL_INSERT,
-			{
-				"msg_id": msg_id,
-				"date": datetime.utcnow()
-			}
-		)
+		try:
+			self.cur.execute(
+				helper.SQL_EMAIL_INSERT,
+				{
+					"msg_id": msg_id,
+					"date": datetime.utcnow()
+				}
+			)
+		except:pass
 
 		return self.cur.lastrowid
 
@@ -67,11 +67,14 @@ class Database:
 			result[2]
 		)
 
-	def reply_to(self, email_id: int):
+	def reply_to(
+		self,
+		email_id: int
+	) -> Union[None, int]:
 		self.cur.execute(
 			helper.SQL_REPLY_TO,
 			{
-				"email_id": email_id
+				"msg_id": email_id
 			}
 		)
 
@@ -80,14 +83,27 @@ class Database:
 		if not bool(result):
 			return
 
-		return TGEmails(
-			result[0],
-			result[1],
-			result[2],
-			result[3],
-			result[4]
-		)
+		return result[0]
 
 	def get_emails(self):
 		self.cur.execute(helper.SQL_GET_EMAILS)
 		return self.cur.fetchall()
+
+	def get_unread_threads(self, entries: List[Dict[str, str]]):
+		new_entries = []
+
+		for e in entries:
+			thread_url = e['link']['@href']
+			mail = self.get_email(
+				utils.email_id_from_url(
+					thread_url
+				)
+			)
+			if not mail:
+				new_entries.append(
+					thread_url
+					.replace("http:", "https:")
+					+ "raw"
+				)
+
+		return new_entries
