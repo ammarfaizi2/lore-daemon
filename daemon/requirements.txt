@@ -1,0 +1,7 @@
+pyrogram
+tgcrypto
+apscheduler
+python-dotenv
+httpx
+bs4
+import-expression
