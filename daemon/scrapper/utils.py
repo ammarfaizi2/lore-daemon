@@ -13,27 +13,27 @@ def extract_list(key: str, content: Dict[str, str]):
 	return content[key.lower()].split(", ")
 
 def consruct_to_n_cc(to: list, cc: list):
-	template = ""
+	NR_MAX_LIST = 10
 
-	for t in to[:10]:
-		template += f"To: {t}\n"
+	n = 0
+	ret = ""
+	for i in to:
+		if n >= NR_MAX_LIST:
+			ret += "To: ...\n"
+			break
 
-		if to.index(t) >= 10:
-			template += "To: ..."
+		n += 1
+		ret += f"To: {i}\n"
 
-	if len(to) >= 10 and len(cc) != 0:
-		template += "Cc: ...\n"
+	for i in cc:
+		if n >= NR_MAX_LIST:
+			ret += "Cc: ...\n"
+			break
 
-	elif len(cc) != 0:
-		substr = 10 - len(to)
+		n += 1
+		ret += f"Cc: {i}\n"
 
-		for c in cc[:substr]:
-			template += f"Cc: {c}\n"
-
-			if cc.index(c) >= 10:
-				template += "Cc: ..."
-
-	return template
+	return ret
 
 def extract_body(thread: Message):
 	if not thread.is_multipart():
