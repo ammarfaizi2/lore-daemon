@@ -24,9 +24,10 @@ bot = Client(
 )
 
 conn = connector.connect(
-	host="localhost",
-	user="root",
-	database="cuman_tst"
+	host=os.getenv("DB_HOST"),
+	user=os.getenv("DB_USER"),
+	password=os.getenv("DB_PWD"),
+	database=os.getenv("DB_NAME")
 )
 
 db = Database(conn)
