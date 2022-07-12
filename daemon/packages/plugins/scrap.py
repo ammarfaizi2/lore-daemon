@@ -8,7 +8,7 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 
 from scrapper import Scrapper, utils
 from packages import constants
-import os
+import shutil
 
 @Client.on_message(
 	filters.regex(constants.URL_REGEX) &
@@ -33,6 +33,8 @@ async def scrap_email(_, m: Message):
 		)
 	)
 
-	for f in files:
-		await m.reply_document(f, file_name=f)
-		os.remove(f)
+	for d, f in files:
+		await m.reply_document(f"{d}/{f}", file_name=f)
+
+	if bool(files):
+		shutil.rmtree(files[0][0])

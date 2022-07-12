@@ -5,6 +5,7 @@
 
 from email.message import Message
 from typing import Dict
+import hashlib, os, uuid
 
 def extract_list(key: str, content: Dict[str, str]):
 	if not bool(content.get(key.lower())):
@@ -37,14 +38,19 @@ def extract_body(thread: Message):
 
 	ret = ""
 	files = []
+	temp = gen_temp(str(thread.get("message-id", uuid.uuid4())))
+
 	for p in thread.get_payload():
-		if 'inline' in [p.get('content-disposition')] or not bool(p.get_filename()):
-			ret += f"{p.get_payload(decode=True).decode()}\n".lstrip()
+		fname = p.get_filename()
+		payload = p.get_payload(decode=True)
+
+		if 'inline' in [p.get('content-disposition')] or not bool(fname):
+			ret += f"{payload.decode()}\n".lstrip()
 			continue
 
-		with open(p.get_filename(), "wb") as f:
-			f.write(p.get_payload(decode=True))
-			files.append(p.get_filename())
+		with open(f"{temp}/{fname}", "wb") as f:
+			f.write(payload)
+			files.append((temp, fname))
 
 	return ret, files
 
@@ -68,3 +74,8 @@ def create_template(thread: Message):
 	) + "\n<code>------------------------------------------------------------------------</code>"
 
 	return template, files
+
+def gen_temp(name: str):
+	md5 = hashlib.md5(name.encode()).hexdigest()
+	os.mkdir(md5)
+	return md5
