@@ -5,7 +5,6 @@
 
 from email.message import Message
 from typing import Dict
-import re
 
 def extract_list(key: str, content: Dict[str, str]):
 	if not bool(content.get(key.lower())):

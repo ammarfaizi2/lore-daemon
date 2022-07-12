@@ -3,7 +3,7 @@
 # Copyright (C) 2022  Muhammad Rizki <riskimuhammmad1@gmail.com>
 #
 
-from pyrogram import Client, idle
+from pyrogram import Client
 from packages import Job
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
