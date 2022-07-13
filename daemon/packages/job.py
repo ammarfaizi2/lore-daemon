@@ -11,7 +11,7 @@ from pyrogram import Client, enums
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-import shutil, asyncio
+import shutil, asyncio, os
 
 class Job():
 	def __init__(
@@ -42,7 +42,7 @@ class Job():
 			template, files = utils.create_template(thread)
 
 			m = await self.client.send_message(
-				-1001673279485,
+				os.getenv("TG_SEND_TO"),
 				template,
 				reply_to_message_id=reply_to,
 				parse_mode=enums.ParseMode.HTML,
