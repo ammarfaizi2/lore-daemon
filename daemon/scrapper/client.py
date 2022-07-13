@@ -8,7 +8,6 @@ from . import utils
 from typing import Dict, List
 import xmltodict
 import httpx
-import email.header
 import email.policy
 import email
 
