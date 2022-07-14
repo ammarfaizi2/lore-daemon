@@ -132,3 +132,6 @@ dmypy.json
 # Telegram
 *.session
 data.json
+
+# VSCode editor
+.vscode/
