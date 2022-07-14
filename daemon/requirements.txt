@@ -1,8 +1,10 @@
-pyrogram
-tgcrypto
 apscheduler
-python-dotenv
 httpx
 import-expression
 mysql-connector-python
+pyrogram
+python-dotenv
+tgcrypto
 xmltodict
+unicode
+python-slugify
