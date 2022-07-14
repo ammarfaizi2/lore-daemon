@@ -26,7 +26,7 @@ bot = Client(
 conn = connector.connect(
 	host=os.getenv("DB_HOST"),
 	user=os.getenv("DB_USER"),
-	password=os.getenv("DB_PWD"),
+	password=os.getenv("DB_PASS"),
 	database=os.getenv("DB_NAME")
 )
 
@@ -34,8 +34,8 @@ db = Database(conn)
 
 sched = AsyncIOScheduler(
 	job_defaults={
-		'max_instances': 5,
-		'misfire_grace_time': 15*60
+		"max_instances": ,
+		"misfire_grace_time": 15*60
 	}
 )
 sched.start()
