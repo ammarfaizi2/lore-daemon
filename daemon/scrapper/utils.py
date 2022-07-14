@@ -93,3 +93,12 @@ def extract_email_id(text: str):
 
 def email_id_from_url(text: str):
 	return text.split("/")[-2]
+
+def get_reply_to(thread, db):
+	reply_to = None
+	in_reply_to = thread.get("in-reply-to")
+
+	if in_reply_to:
+		in_reply_id = utils.extract_email_id(str(in_reply_to))
+		reply_to = db.reply_to(in_reply_id)
+

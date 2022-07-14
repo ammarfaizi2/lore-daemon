@@ -17,6 +17,7 @@ class Database:
 		self.conn.autocommit = True
 
 	def insert_email(self, msg_id: str):
+		print(f"[insert_email]: {msg_id}")
 		try:
 			self.cur.execute(
 				helper.SQL_EMAIL_INSERT,
@@ -35,6 +36,7 @@ class Database:
 		chat_id: int,
 		tg_msg_id: int
 	):
+		print(f"[insert_telegram]: {email_id},{chat_id}\n\n\n")
 		self.cur.execute(
 			helper.SQL_TG_INSERT,
 			{
@@ -107,3 +109,125 @@ class Database:
 				)
 
 		return new_entries
+
+	#
+	# Determine whether the email needs to be sent to @tg_chat_id.
+	#
+	# - Return an email id (PK) if it needs to be sent.
+	# - Return None if it doesn't need to be sent.
+	#
+	def need_to_send_to_tg(self, email_msg_id, tg_chat_id):
+		try:
+			self.cur.execute("START TRANSACTION")
+			self.cur.execute(
+				helper.SQL_TRACK_EMAIL_BY_TG_CHAT_ID,
+				{
+					"email_msg_id": email_msg_id,
+					"tg_chat_id": tg_chat_id
+				}
+			)
+			res = self.cur.fetchone()
+
+			if not bool(res):
+				#
+				# We don't have this email in database.
+				# Save it!
+				#
+				email_id = self.insert_email(email_msg_id)
+				if not email_id:
+					#
+					# Fail to insert? Something goes wrong!
+					#
+					email_id = None
+					self.cur.execute("ROLLBACK")
+					return None
+
+			elif not bool(res[1]):
+				#
+				# If there is no Telegram chat message
+				# record for this @email_msg_id, then
+				# we return the @email_id and let the
+				# caller send it to Telegram.
+				#
+				email_id = res[0]
+			else:
+				#
+				# This email has already been sent to
+				# @tg_chat_id.
+				#
+				# This informs the caller to skip sending
+				# this email to @tg_chat_id.
+				#
+				email_id = None
+
+			self.cur.execute("COMMIT")
+			return email_id
+		except:
+			self.cur.execute("ROLLBACK")
+			return None
+
+	def get_tg_reply_to(email_msg_id, tg_chat_id):
+		try:
+			self.cur.execute("START TRANSACTION")
+			self.cur.execute(
+				helper.SQL_TRACK_EMAIL_BY_TG_CHAT_ID,
+				{
+					"email_msg_id": email_msg_id,
+					"tg_chat_id": tg_chat_id
+				}
+			)
+			res = self.cur.fetchone()
+
+			if not bool(res):
+				#
+				# We don't have this email in database.
+				# Save it!
+				#
+				email_id = self.insert_email(email_msg_id)
+				if not email_id:
+					#
+					# Fail to insert? Something goes wrong!
+					#
+					email_id = None
+					self.cur.execute("ROLLBACK")
+					return None
+
+			elif not bool(res[1]):
+				#
+				# If there is no Telegram chat message
+				# record for this @email_msg_id, then
+				# we return the @email_id and let the
+				# caller send it to Telegram.
+				#
+				email_id = res[0]
+			else:
+				#
+				# This email has already been sent to
+				# @tg_chat_id.
+				#
+				# This informs the caller to skip sending
+				# this email to @tg_chat_id.
+				#
+				email_id = None
+
+			self.cur.execute("COMMIT")
+			return email_id
+		except:
+			self.cur.execute("ROLLBACK")
+			return None
+
+
+	def get_tg_reply_to(self, email_id, tg_chat_id):
+		self.cur.execute(
+			helper.SQL_TG_REPLY_TO,
+			{
+				"email_id": email_id,
+				"chat_id": tg_chat_id
+			}
+		)
+		res = self.cur.fetchone()
+
+		if not bool(res):
+			return None
+
+		return res[0]
