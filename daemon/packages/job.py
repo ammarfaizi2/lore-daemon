@@ -37,7 +37,8 @@ class Job():
 		# TODO(ammarfaizi2): Broadcast to several @tg_chat_ids.
 		#
 		tg_chat_ids = [
-			os.getenv("TG_SEND_TO")
+			os.getenv("TG_SEND_TO"),
+			-1001394203410
 		]
 
 		for i in tg_chat_ids:

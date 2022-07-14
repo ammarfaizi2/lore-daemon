@@ -7,10 +7,61 @@ from email.message import Message
 from typing import Dict
 import hashlib, os, uuid, re
 
+#
+# This increments the @i while we are seeing a whitespace.
+#
+def _skip_whitespace(i, ss_len, ss):
+	while i < ss_len:
+		c = ss[i]
+		if c != ' ' and c != '\t' and c != '\n':
+			break
+		i += 1
+
+	return i
+
+#
+# Pick a single element in the list. The delimiter here is
+# a comma char ','. But note that when are inside a double
+# quotes, we must not take the comma as a delimiter.
+#
+def _pick_element(i, ss_len, ss, ret):
+	acc = ""
+	in_quotes = False
+
+	while i < ss_len:
+		c = ss[i]
+		i += 1
+
+		if c == '"':
+			in_quotes = (not in_quotes)
+
+		if not in_quotes and c == ',':
+			break
+
+		acc += c
+
+	if acc != "":
+		ret.append(acc)
+
+	return i
+
+def _extract_list(ss):
+	ss = ss.strip()
+	ss_len = len(ss)
+	ret = []
+	i = 0
+
+	while i < ss_len:
+		i = _skip_whitespace(i, ss_len, ss)
+		i = _pick_element(i, ss_len, ss, ret)
+
+	return ret
+
 def extract_list(key: str, content: Dict[str, str]):
-	if not bool(content.get(key.lower())):
+	people = content.get(key.lower())
+	if not people:
 		return []
-	return content[key.lower()].split(", ")
+	return _extract_list(people)
 
 def consruct_to_n_cc(to: list, cc: list):
 	NR_MAX_LIST = 10

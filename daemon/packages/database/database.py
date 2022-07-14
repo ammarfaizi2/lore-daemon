@@ -95,18 +95,19 @@ class Database:
 		new_entries = []
 
 		for e in entries:
+			# thread_url = e['link']['@href']
+			# mail = self.get_email(
+			# 	utils.email_id_from_url(
+			# 		thread_url
+			# 	)
+			# )
+			# if not mail:
 			thread_url = e['link']['@href']
-			mail = self.get_email(
-				utils.email_id_from_url(
-					thread_url
-				)
+			new_entries.append(
+				thread_url
+				.replace("http:", "https:")
+				+ "raw"
 			)
-			if not mail:
-				new_entries.append(
-					thread_url
-					.replace("http:", "https:")
-					+ "raw"
-				)
 
 		return new_entries
 
@@ -127,7 +128,7 @@ class Database:
 				}
 			)
 			res = self.cur.fetchone()
-
+			print(res)
 			if not bool(res):
 				#
 				# We don't have this email in database.
@@ -165,57 +166,6 @@ class Database:
 		except:
 			self.cur.execute("ROLLBACK")
 			return None
-
-	def get_tg_reply_to(email_msg_id, tg_chat_id):
-		try:
-			self.cur.execute("START TRANSACTION")
-			self.cur.execute(
-				helper.SQL_TRACK_EMAIL_BY_TG_CHAT_ID,
-				{
-					"email_msg_id": email_msg_id,
-					"tg_chat_id": tg_chat_id
-				}
-			)
-			res = self.cur.fetchone()
-
-			if not bool(res):
-				#
-				# We don't have this email in database.
-				# Save it!
-				#
-				email_id = self.insert_email(email_msg_id)
-				if not email_id:
-					#
-					# Fail to insert? Something goes wrong!
-					#
-					email_id = None
-					self.cur.execute("ROLLBACK")
-					return None
-
-			elif not bool(res[1]):
-				#
-				# If there is no Telegram chat message
-				# record for this @email_msg_id, then
-				# we return the @email_id and let the
-				# caller send it to Telegram.
-				#
-				email_id = res[0]
-			else:
-				#
-				# This email has already been sent to
-				# @tg_chat_id.
-				#
-				# This informs the caller to skip sending
-				# this email to @tg_chat_id.
-				#
-				email_id = None
-
-			self.cur.execute("COMMIT")
-			return email_id
-		except:
-			self.cur.execute("ROLLBACK")
-			return None
-
 
 	def get_tg_reply_to(self, email_id, tg_chat_id):
 		self.cur.execute(
