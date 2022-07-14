@@ -11,6 +11,7 @@ import uuid
 import os
 import re
 
+
 def get_email_msg_id(mail):
 	ret = mail.get("message-id")
 	if not ret:
@@ -175,7 +176,7 @@ def create_template(thread: Message, to=None, cc=None):
 	if is_patch:
 		ret += content
 	else:
-		ret += content.strip()
+		ret += content.strip().replace("\t", "        ")
 		if len(ret) >= 4000:
 			ret = ret[:4000] + "..."
 
@@ -187,3 +188,12 @@ def create_template(thread: Message, to=None, cc=None):
 		) + "\n<code>------------------------------------------------------------------------</code>"
 
 	return ret, files, is_patch
+
+
+EMAIL_MSG_ID_PATTERN = r"<([^\<\>]+)>"
+def extract_email_msg_id(msg_id):
+	ret = re.search(EMAIL_MSG_ID_PATTERN, msg_id)
+	if not ret:
+		return None
+	return ret.group(1)
+

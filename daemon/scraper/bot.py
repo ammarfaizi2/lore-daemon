@@ -27,14 +27,15 @@ class BotMutexes():
 
 class Bot():
 	ATOM_URLS = [
-		# "https://lore.kernel.org/io-uring/new.atom",
-		# "https://lore.kernel.org/linux-sgx/new.atom",
-		"https://lore.kernel.org/netdev/new.atom"
+		"https://lore.kernel.org/io-uring/new.atom",
+		"https://lore.kernel.org/linux-sgx/new.atom",
 	]
 
 	TG_CHAT_IDS = [
-		-1001394203410
+		-1001394203410,
+		-1001673279485,
 	]
+
 
 	def __init__(self, client: Client, sched: AsyncIOScheduler,
 		     scraper: Scraper, mutexes: BotMutexes, conn):
@@ -47,6 +48,10 @@ class Bot():
 
 
 	def run(self):
+		#
+		# Execute __run() once to avoid high latency at
+		# initilization.
+		#
 		self.runner = self.sched.add_job(
 			func=self.__run,
 			misfire_grace_time=None,
@@ -55,9 +60,12 @@ class Bot():
 
 
 	async def __run(self):
-		print("[__run]")
+		print("[__run]: Running...")
 		for url in self.ATOM_URLS:
-			await self.__handle_atom_url(url)
+			try:
+				await self.__handle_atom_url(url)
+			except Exception as e:
+				print(f"[__run]: Error: {e}")
 
 		if not self.isRunnerFixed:
 			self.isRunnerFixed = True
@@ -80,8 +88,11 @@ class Bot():
 	async def __handle_mail(self, url, mail):
 		for tg_chat_id in self.TG_CHAT_IDS:
 			async with self.mutexes.send_to_tg:
-				await self.__send_to_tg(url, mail, tg_chat_id)
-			await asyncio.sleep(1)
+				should_wait = await self.__send_to_tg(url, mail,
+								      tg_chat_id)
+
+			if should_wait:
+				await asyncio.sleep(1)
 
 
 	# @__must_hold(self.mutexes.send_to_tg)
@@ -89,18 +100,32 @@ class Bot():
 		email_msg_id = utils.get_email_msg_id(mail)
 		if not email_msg_id:
 			#
-			# Malformed email?
+			# It doesn't have a Message-Id.
+			# A malformed email. Skip!
 			#
-			return
+			return False
 
-		self.db.save_email_msg_id(email_msg_id)
+		email_id = self.__need_to_send_to_telegram(email_msg_id,
+							   tg_chat_id)
+		if not email_id:
+			#
+			# Email has already been sent to Telegram.
+			# Skip!
+			#
+			return False
+
 		text, files, is_patch = utils.create_template(mail)
+		reply_to = self.get_tg_reply_to(mail, tg_chat_id)
 
 		if is_patch:
-			m = await self.__send_patch_msg(mail, tg_chat_id, text, url)
+			m = await self.__send_patch_msg(mail, tg_chat_id,
+							reply_to, text, url)
 		else:
-			m = await self.__send_text_msg(tg_chat_id, text, url)
+			text = "#ml\n" + text
+			m = await self.__send_text_msg(tg_chat_id, reply_to,
+						       text, url)
 
+		self.db.insert_telegram(email_id, m.chat.id, m.id)
 		for d, f in files:
 			await m.reply_document(f"{d}/{f}", file_name=f)
 			await asyncio.sleep(1)
@@ -108,18 +133,60 @@ class Bot():
 		if files:
 			shutil.rmtree(str(files[0][0]))
 
+		return True
+
+
+	def __need_to_send_to_telegram(self, email_msg_id, tg_chat_id):
+		email_id = self.db.save_email_msg_id(email_msg_id)
+		if email_id:
+			return email_id
+
+		email_id = self.db.need_to_send_to_tg(email_msg_id, tg_chat_id)
+		return email_id
+
+
+	def get_tg_reply_to(self, mail, tg_chat_id):
+		reply_to = mail.get("in-reply-to")
+		if not reply_to:
+			return None
+
+		reply_to = utils.extract_email_msg_id(reply_to)
+		if not reply_to:
+			return None
+
+		return self.db.get_tg_reply_to(reply_to, tg_chat_id)
+
 
 	async def __send_patch_msg(self, mail, tg_chat_id, text, url):
 		print("[__send_patch_msg]")
+		
+		tmp, fnm, caption, url = Bot.prepare_send_patch(mail, text, url)
+		ret = await self.__handle_telegram_floodwait(
+			self.____send_patch_msg,
+			*[tg_chat_id, reply_to, fnm, caption, url]
+		)
+		Bot.clean_up_after_send_patch(tmp)
+		return ret
+
+
+	@staticmethod
+	def prepare_send_patch(mail, text, url):
 		tmp = utils.gen_temp(url)
 		fnm = str(mail.get("subject"))
 		sch = re.search(utils.PATCH_PATTERN, fnm, re.IGNORECASE)
-		num = "%04d" % int(sch.group(1))
-		fnm = slugify(sch.group(3))
-		fnm = f"{tmp}/{num}-{fnm}.patch"
+
+		nr_patch = sch.group(1)
+		if not nr_patch:
+			nr_patch = 1
+		else:
+			nr_patch = int(nr_patch)
+
+		num = "%04d" % nr_patch
+		fnm = slugify(sch.group(3)).replace("_", "-")
+		file = f"{tmp}/{num}-{fnm}.patch"
 		cap = text.split("\n\n")[0]
 
-		with open(fnm, "wb") as f:
+		with open(file, "wb") as f:
 			f.write(bytes(text, encoding="utf8"))
 
 		caption = (
@@ -129,13 +196,12 @@ class Bot():
 				.replace(">","&gt;")
 				.replace("�"," ")
 		)
+		return tmp, file, caption, url
 
-		ret = await self.__handle_telegram_floodwait(
-			self.____send_patch_msg,
-			*[tg_chat_id, fnm, caption, url]
-		)
+
+	@staticmethod
+	def clean_up_after_send_patch(tmp):
 		shutil.rmtree(tmp)
-		return ret
 
 
 	async def __send_text_msg(self, *args):
@@ -155,6 +221,7 @@ class Bot():
 				# Let's slow down a bit.
 				#
 				await self.____handle_telegram_floodwait(e)
+				print("[__handle_telegram_floodwait]: Woken up from flood wait...")
 
 
 	async def ____handle_telegram_floodwait(self, e):
@@ -164,16 +231,17 @@ class Bot():
 			raise e
 
 		n = int(x.group(1))
-		print("[____handle_telegram_floodwait]: Sleeping for %d seconds due to Telegram limit" % (n))
+		print(f"[____handle_telegram_floodwait]: Sleeping for {n} seconds due to Telegram limit")
 		await asyncio.sleep(n)
 
 
-	async def ____send_patch_msg(self, tg_chat_id, fnm, caption, url):
+	async def ____send_patch_msg(self, tg_chat_id, reply_to, fnm, caption,
+				     url):
 		return await self.client.send_document(
 			tg_chat_id,
 			fnm,
 			caption=caption,
-			reply_to_message_id=None,
+			reply_to_message_id=reply_to,
 			parse_mode=enums.ParseMode.HTML,
 			reply_markup=InlineKeyboardMarkup([
 				[InlineKeyboardButton(
@@ -184,12 +252,12 @@ class Bot():
 		)
 
 
-	async def ____send_text_msg(self, tg_chat_id, text, url):
+	async def ____send_text_msg(self, tg_chat_id, reply_to, text, url):
 		print("[__send_text_msg]")
 		return await self.client.send_message(
 			tg_chat_id,
 			text,
-			reply_to_message_id=None,
+			reply_to_message_id=reply_to,
 			parse_mode=enums.ParseMode.HTML,
 			reply_markup=InlineKeyboardMarkup([
 				[InlineKeyboardButton(
