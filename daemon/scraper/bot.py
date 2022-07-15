@@ -13,7 +13,6 @@ from scraper import Scraper
 from pyrogram import enums
 from . import utils
 from .db import Db
-import xmltodict
 import pyrogram
 import asyncio
 import shutil

@@ -5,14 +5,12 @@
 #
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from email.message import Message
 from scraper import BotMutexes
 from dotenv import load_dotenv
 from mysql import connector
 from pyrogram import Client
 from scraper import Scraper
 from scraper import Bot
-import asyncio
 import os
 
 

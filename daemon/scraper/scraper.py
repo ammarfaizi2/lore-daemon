@@ -5,14 +5,10 @@
 #
 
 from typing import Dict, List
-from .db import Db
 import email.policy
 import xmltodict
-import operator
-import asyncio
 import httpx
 import email
-import json
 
 
 class Scraper():
