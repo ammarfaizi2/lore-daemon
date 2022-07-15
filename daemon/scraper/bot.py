@@ -8,7 +8,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pyrogram.types import InlineKeyboardMarkup
 from pyrogram.types import InlineKeyboardButton
 from slugify import slugify
-from pyrogram import Client
+from packages import DaemonClient
 from scraper import Scraper
 from pyrogram import enums
 from . import utils
@@ -32,12 +32,11 @@ class Bot():
 	]
 
 	TG_CHAT_IDS = [
-		-1001394203410,
-		-1001673279485,
+		"kiizuah"
 	]
 
 
-	def __init__(self, client: Client, sched: AsyncIOScheduler,
+	def __init__(self, client: DaemonClient, sched: AsyncIOScheduler,
 		     scraper: Scraper, mutexes: BotMutexes, conn):
 		self.client = client
 		self.sched = sched
@@ -123,8 +122,8 @@ class Bot():
 							reply_to, text, url)
 		else:
 			text = "#ml\n" + text
-			m = await self.__send_text_msg(tg_chat_id, reply_to,
-						       text, url)
+			m = await self.__send_text_msg(tg_chat_id, text,
+						       reply_to, url)
 
 		self.db.insert_telegram(email_id, m.chat.id, m.id)
 		for d, f in files:
@@ -161,10 +160,10 @@ class Bot():
 	async def __send_patch_msg(self, mail, tg_chat_id, reply_to, text, url):
 		print("[__send_patch_msg]")
 		
-		tmp, fnm, caption, url = Bot.prepare_send_patch(mail, text, url)
+		tmp, doc, caption, url = Bot.prepare_send_patch(mail, text, url)
 		ret = await self.__handle_telegram_floodwait(
-			self.____send_patch_msg,
-			*[tg_chat_id, reply_to, fnm, caption, url]
+			self.client.send_patch_email,
+			*[tg_chat_id, doc, caption, reply_to, url]
 		)
 		Bot.clean_up_after_send_patch(tmp)
 		return ret
@@ -207,7 +206,7 @@ class Bot():
 
 	async def __send_text_msg(self, *args):
 		return await self.__handle_telegram_floodwait(
-			self.____send_text_msg,
+			self.client.send_text_email,
 			*args
 		)
 
@@ -242,22 +241,6 @@ class Bot():
 			tg_chat_id,
 			fnm,
 			caption=caption,
-			reply_to_message_id=reply_to,
-			parse_mode=enums.ParseMode.HTML,
-			reply_markup=InlineKeyboardMarkup([
-				[InlineKeyboardButton(
-					"See the full message",
-					url=url
-				)]
-			])
-		)
-
-
-	async def ____send_text_msg(self, tg_chat_id, reply_to, text, url):
-		print("[__send_text_msg]")
-		return await self.client.send_message(
-			tg_chat_id,
-			text,
 			reply_to_message_id=reply_to,
 			parse_mode=enums.ParseMode.HTML,
 			reply_markup=InlineKeyboardMarkup([
