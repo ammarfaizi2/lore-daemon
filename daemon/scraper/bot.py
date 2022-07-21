@@ -115,6 +115,7 @@ class Bot():
 
 		text, files, is_patch = utils.create_template(mail)
 		reply_to = self.get_tg_reply_to(mail, tg_chat_id)
+		url = str(re.sub(r"/raw$", "", url))
 
 		if is_patch:
 			m = await self.__send_patch_msg(mail, tg_chat_id,
