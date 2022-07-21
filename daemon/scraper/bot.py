@@ -159,7 +159,7 @@ class Bot():
 
 	async def __send_patch_msg(self, mail, tg_chat_id, reply_to, text, url):
 		print("[__send_patch_msg]")
-		
+
 		tmp, doc, caption, url = Bot.prepare_send_patch(mail, text, url)
 		ret = await self.__handle_telegram_floodwait(
 			self.client.send_patch_email,
