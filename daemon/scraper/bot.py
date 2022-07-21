@@ -157,7 +157,7 @@ class Bot():
 		return self.db.get_tg_reply_to(reply_to, tg_chat_id)
 
 
-	async def __send_patch_msg(self, mail, tg_chat_id, text, url):
+	async def __send_patch_msg(self, mail, tg_chat_id, reply_to, text, url):
 		print("[__send_patch_msg]")
 		
 		tmp, fnm, caption, url = Bot.prepare_send_patch(mail, text, url)
