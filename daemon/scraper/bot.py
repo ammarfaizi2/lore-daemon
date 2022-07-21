@@ -233,20 +233,3 @@ class Bot():
 		n = int(x.group(1))
 		print(f"[____handle_telegram_floodwait]: Sleeping for {n} seconds due to Telegram limit")
 		await asyncio.sleep(n)
-
-
-	async def ____send_patch_msg(self, tg_chat_id, reply_to, fnm, caption,
-				     url):
-		return await self.client.send_document(
-			tg_chat_id,
-			fnm,
-			caption=caption,
-			reply_to_message_id=reply_to,
-			parse_mode=enums.ParseMode.HTML,
-			reply_markup=InlineKeyboardMarkup([
-				[InlineKeyboardButton(
-					"See the full message",
-					url=url
-				)]
-			])
-		)
