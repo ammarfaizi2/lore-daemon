@@ -182,12 +182,8 @@ def create_template(thread: Message, to=None, cc=None):
 		if len(ret) >= 4000:
 			ret = ret[:4000] + "..."
 
-		ret = (
-			ret.rstrip()
-			.replace("<", "&lt;")
-			.replace(">","&gt;")
-			.replace("�"," ")
-		) + "\n<code>------------------------------------------------------------------------</code>"
+		ret = fix_utf8_char(ret)
+		ret += "\n<code>------------------------------------------------------------------------</code>"
 
 	return ret, files, is_patch
 
@@ -211,18 +207,21 @@ def prepare_send_patch(mail, text, url):
 	with open(file, "wb") as f:
 		f.write(bytes(text, encoding="utf8"))
 
-	caption = (
-		"#patch #ml\n" +
-		cap.rstrip()
-			.replace("<", "&lt;")
-			.replace(">","&gt;")
-			.replace("�"," ")
-	)
+	caption = "#patch #ml\n" + fix_utf8_char(cap)
 	return tmp, file, caption, url
 
 
 def clean_up_after_send_patch(tmp):
 	shutil.rmtree(tmp)
+
+
+def fix_utf8_char(text: str):
+	return (
+		text.rstrip()
+		.replace("<", "&lt;")
+		.replace(">","&gt;")
+		.replace("�"," ")
+	)
 
 
 EMAIL_MSG_ID_PATTERN = r"<([^\<\>]+)>"
