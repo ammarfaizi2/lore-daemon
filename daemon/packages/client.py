@@ -6,7 +6,7 @@
 from pyrogram import Client
 from pyrogram.enums import ParseMode
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
-from typing import Union, BinaryIO
+from typing import Union
 from email.message import Message
 from scraper import utils
 from .decorator import handle_flood

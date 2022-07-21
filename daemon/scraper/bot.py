@@ -5,15 +5,10 @@
 #
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from pyrogram.types import InlineKeyboardMarkup
-from pyrogram.types import InlineKeyboardButton
-from slugify import slugify
 from packages import DaemonClient
 from scraper import Scraper
-from pyrogram import enums
 from . import utils
 from .db import Db
-import pyrogram
 import asyncio
 import shutil
 import re
