@@ -110,7 +110,7 @@ def consruct_to_n_cc(to: list, cc: list):
 
 def gen_temp(name: str):
 	md5 = hashlib.md5(name.encode()).hexdigest()
-	ret = os.getenv("STORAGE_DIR") + "/" + md5
+	ret = os.getenv("STORAGE_DIR", "storage") + "/" + md5
 	try:
 		os.mkdir(ret)
 	except FileExistsError:
