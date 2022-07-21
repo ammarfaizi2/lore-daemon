@@ -37,7 +37,7 @@ class Bot():
 
 
 	def __init__(self, client: DaemonClient, sched: AsyncIOScheduler,
-		     scraper: Scraper, mutexes: BotMutexes, conn):
+			scraper: Scraper, mutexes: BotMutexes, conn):
 		self.client = client
 		self.sched = sched
 		self.scraper = scraper
@@ -88,7 +88,7 @@ class Bot():
 		for tg_chat_id in self.TG_CHAT_IDS:
 			async with self.mutexes.send_to_tg:
 				should_wait = await self.__send_to_tg(url, mail,
-								      tg_chat_id)
+									tg_chat_id)
 
 			if should_wait:
 				await asyncio.sleep(1)
@@ -105,7 +105,7 @@ class Bot():
 			return False
 
 		email_id = self.__need_to_send_to_telegram(email_msg_id,
-							   tg_chat_id)
+							tg_chat_id)
 		if not email_id:
 			#
 			# Email has already been sent to Telegram.
@@ -122,8 +122,9 @@ class Bot():
 							reply_to, text, url)
 		else:
 			text = "#ml\n" + text
-			m = await self.__send_text_msg(tg_chat_id, text,
-						       reply_to, url)
+			m = await self.client.send_text_email(
+				tg_chat_id, text,reply_to, url
+			)
 
 		self.db.insert_telegram(email_id, m.chat.id, m.id)
 		for d, f in files:
@@ -161,40 +162,8 @@ class Bot():
 		print("[__send_patch_msg]")
 
 		tmp, doc, caption, url = utils.prepare_send_patch(mail, text, url)
-		ret = await self.__handle_telegram_floodwait(
-			self.client.send_patch_email,
-			*[tg_chat_id, doc, caption, reply_to, url]
+		ret = await self.client.send_patch_email(
+			tg_chat_id, doc, caption, reply_to, url
 		)
 		utils.clean_up_after_send_patch(tmp)
 		return ret
-
-
-	async def __send_text_msg(self, *args):
-		return await self.__handle_telegram_floodwait(
-			self.client.send_text_email,
-			*args
-		)
-
-
-	async def __handle_telegram_floodwait(self, callback, *args):
-		while True:
-			try:
-				return await callback(*args)
-			except pyrogram.errors.exceptions.flood_420.FloodWait as e:
-				#
-				# Aiee... we hit our limit.
-				# Let's slow down a bit.
-				#
-				await self.____handle_telegram_floodwait(e)
-				print("[__handle_telegram_floodwait]: Woken up from flood wait...")
-
-
-	async def ____handle_telegram_floodwait(self, e):
-		x = str(e)
-		x = re.search(r"A wait of (\d+) seconds is required", x)
-		if not x:
-			raise e
-
-		n = int(x.group(1))
-		print(f"[____handle_telegram_floodwait]: Sleeping for {n} seconds due to Telegram limit")
-		await asyncio.sleep(n)

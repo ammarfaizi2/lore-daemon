@@ -7,6 +7,7 @@ from pyrogram import Client
 from pyrogram.enums import ParseMode
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from typing import Union, BinaryIO
+from .decorator import handle_flood
 
 
 class DaemonClient(Client):
@@ -16,6 +17,7 @@ class DaemonClient(Client):
 				api_hash, **kwargs)
 
 
+	@handle_flood
 	async def send_text_email(
 		self,
 		chat_id: Union[int, str],
@@ -39,6 +41,7 @@ class DaemonClient(Client):
 		)
 
 
+	@handle_flood
 	async def send_patch_email(
 		self,
 		chat_id: Union[int, str],
