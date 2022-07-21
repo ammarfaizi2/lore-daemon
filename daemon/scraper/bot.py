@@ -17,6 +17,7 @@ import pyrogram
 import asyncio
 import shutil
 import re
+import traceback
 
 
 class BotMutexes():
@@ -63,8 +64,8 @@ class Bot():
 		for url in self.ATOM_URLS:
 			try:
 				await self.__handle_atom_url(url)
-			except Exception as e:
-				print(f"[__run]: Error: {e}")
+			except:
+				print(traceback.format_exc())
 
 		if not self.isRunnerFixed:
 			self.isRunnerFixed = True
