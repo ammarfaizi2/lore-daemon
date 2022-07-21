@@ -4,15 +4,20 @@
 #
 
 from pyrogram.errors.exceptions.flood_420 import FloodWait
-from typing import Any, Callable
+from pyrogram.types import Message
+from typing import Any, Callable, TypeVar
 from functools import wraps
 import re
 import asyncio
 
 __all__ = ["handle_flood"]
 
+T = TypeVar("T", bound=Message)
 
-def handle_flood(func: Callable[[Any], Any]) -> Callable[[Any], Any]:
+#
+# TODO(Muhammad Rizki): Add more typing for @handle_flood
+#
+def handle_flood(func: Callable[[T], T]) -> Callable[[T], T]:
 	@wraps(func)
 	async def callback(*args: Any) -> Any:
 		while True:
