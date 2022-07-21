@@ -160,48 +160,13 @@ class Bot():
 	async def __send_patch_msg(self, mail, tg_chat_id, reply_to, text, url):
 		print("[__send_patch_msg]")
 
-		tmp, doc, caption, url = Bot.prepare_send_patch(mail, text, url)
+		tmp, doc, caption, url = utils.prepare_send_patch(mail, text, url)
 		ret = await self.__handle_telegram_floodwait(
 			self.client.send_patch_email,
 			*[tg_chat_id, doc, caption, reply_to, url]
 		)
-		Bot.clean_up_after_send_patch(tmp)
+		utils.clean_up_after_send_patch(tmp)
 		return ret
-
-
-	@staticmethod
-	def prepare_send_patch(mail, text, url):
-		tmp = utils.gen_temp(url)
-		fnm = str(mail.get("subject"))
-		sch = re.search(utils.PATCH_PATTERN, fnm, re.IGNORECASE)
-
-		nr_patch = sch.group(1)
-		if not nr_patch:
-			nr_patch = 1
-		else:
-			nr_patch = int(nr_patch)
-
-		num = "%04d" % nr_patch
-		fnm = slugify(sch.group(3)).replace("_", "-")
-		file = f"{tmp}/{num}-{fnm}.patch"
-		cap = text.split("\n\n")[0]
-
-		with open(file, "wb") as f:
-			f.write(bytes(text, encoding="utf8"))
-
-		caption = (
-			"#patch #ml\n" +
-			cap.rstrip()
-				.replace("<", "&lt;")
-				.replace(">","&gt;")
-				.replace("�"," ")
-		)
-		return tmp, file, caption, url
-
-
-	@staticmethod
-	def clean_up_after_send_patch(tmp):
-		shutil.rmtree(tmp)
 
 
 	async def __send_text_msg(self, *args):
