@@ -118,8 +118,9 @@ class Bot():
 		url = str(re.sub(r"/raw$", "", url))
 
 		if is_patch:
-			m = await self.__send_patch_msg(mail, tg_chat_id,
-							reply_to, text, url)
+			m = await self.client.send_patch_email(
+				mail, tg_chat_id, text, reply_to, url
+			)
 		else:
 			text = "#ml\n" + text
 			m = await self.client.send_text_email(
@@ -156,14 +157,3 @@ class Bot():
 			return None
 
 		return self.db.get_tg_reply_to(reply_to, tg_chat_id)
-
-
-	async def __send_patch_msg(self, mail, tg_chat_id, reply_to, text, url):
-		print("[__send_patch_msg]")
-
-		tmp, doc, caption, url = utils.prepare_send_patch(mail, text, url)
-		ret = await self.client.send_patch_email(
-			tg_chat_id, doc, caption, reply_to, url
-		)
-		utils.clean_up_after_send_patch(tmp)
-		return ret

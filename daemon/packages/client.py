@@ -7,6 +7,8 @@ from pyrogram import Client
 from pyrogram.enums import ParseMode
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from typing import Union, BinaryIO
+from email.message import Message
+from scraper import utils
 from .decorator import handle_flood
 
 
@@ -44,15 +46,16 @@ class DaemonClient(Client):
 	@handle_flood
 	async def send_patch_email(
 		self,
+		mail: Message,
 		chat_id: Union[int, str],
-		doc: Union[str, BinaryIO],
-		caption: str,
+		text: str,
 		reply_to: int,
 		url: str = None,
 		parse_mode: ParseMode = ParseMode.HTML
 	) -> Message:
 		print("[send_patch_email]")
-		return await self.send_document(
+		tmp, doc, caption, url = utils.prepare_send_patch(mail, text, url)
+		m = await self.send_document(
 			chat_id=chat_id,
 			document=doc,
 			caption=caption,
@@ -65,3 +68,6 @@ class DaemonClient(Client):
 				)]
 			])
 		)
+
+		utils.clean_up_after_send_patch(tmp)
+		return m
