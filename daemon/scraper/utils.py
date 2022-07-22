@@ -6,10 +6,12 @@
 
 from email.message import Message
 from typing import Dict
+from slugify import slugify
 import hashlib
 import uuid
 import os
 import re
+import shutil
 
 
 def get_email_msg_id(mail):
@@ -110,7 +112,7 @@ def consruct_to_n_cc(to: list, cc: list):
 
 def gen_temp(name: str):
 	md5 = hashlib.md5(name.encode()).hexdigest()
-	ret = os.getenv("STORAGE_DIR") + "/" + md5
+	ret = os.getenv("STORAGE_DIR", "storage") + "/" + md5
 	try:
 		os.mkdir(ret)
 	except FileExistsError:
@@ -180,14 +182,46 @@ def create_template(thread: Message, to=None, cc=None):
 		if len(ret) >= 4000:
 			ret = ret[:4000] + "..."
 
-		ret = (
-			ret.rstrip()
-			.replace("<", "&lt;")
-			.replace(">","&gt;")
-			.replace("�"," ")
-		) + "\n<code>------------------------------------------------------------------------</code>"
+		ret = fix_utf8_char(ret)
+		ret += "\n<code>------------------------------------------------------------------------</code>"
 
 	return ret, files, is_patch
+
+
+def prepare_send_patch(mail, text, url):
+	tmp = gen_temp(url)
+	fnm = str(mail.get("subject"))
+	sch = re.search(PATCH_PATTERN, fnm, re.IGNORECASE)
+
+	nr_patch = sch.group(1)
+	if not nr_patch:
+		nr_patch = 1
+	else:
+		nr_patch = int(nr_patch)
+
+	num = "%04d" % nr_patch
+	fnm = slugify(sch.group(3)).replace("_", "-")
+	file = f"{tmp}/{num}-{fnm}.patch"
+	cap = text.split("\n\n")[0]
+
+	with open(file, "wb") as f:
+		f.write(bytes(text, encoding="utf8"))
+
+	caption = "#patch #ml\n" + fix_utf8_char(cap)
+	return tmp, file, caption, url
+
+
+def clean_up_after_send_patch(tmp):
+	shutil.rmtree(tmp)
+
+
+def fix_utf8_char(text: str):
+	return (
+		text.rstrip()
+		.replace("<", "&lt;")
+		.replace(">","&gt;")
+		.replace("�"," ")
+	)
 
 
 EMAIL_MSG_ID_PATTERN = r"<([^\<\>]+)>"

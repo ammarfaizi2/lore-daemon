@@ -5,22 +5,20 @@
 #
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from email.message import Message
 from scraper import BotMutexes
 from dotenv import load_dotenv
 from mysql import connector
-from pyrogram import Client
+from packages import DaemonClient
 from scraper import Scraper
 from scraper import Bot
-import asyncio
 import os
 
 
 def main():
 	load_dotenv()
 
-	client = Client(
-		"EmailScraper",
+	client = DaemonClient(
+		"storage/EmailScraper",
 		api_id=int(os.getenv("API_ID")),
 		api_hash=os.getenv("API_HASH"),
 		bot_token=os.getenv("BOT_TOKEN"),
