@@ -8,7 +8,6 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from packages import DaemonClient
 from scraper import Scraper
 from . import utils
-from .db import Db
 import asyncio
 import shutil
 import re
@@ -22,12 +21,12 @@ class BotMutexes():
 
 class Bot():
 	def __init__(self, client: DaemonClient, sched: AsyncIOScheduler,
-			scraper: Scraper, mutexes: BotMutexes, conn):
+			scraper: Scraper, mutexes: BotMutexes):
 		self.client = client
 		self.sched = sched
 		self.scraper = scraper
 		self.mutexes = mutexes
-		self.db = Db(conn)
+		self.db = client.db
 		self.isRunnerFixed = False
 
 
