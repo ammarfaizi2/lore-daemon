@@ -12,6 +12,7 @@ import uuid
 import os
 import re
 import shutil
+import httpx
 
 
 def get_email_msg_id(mail):
@@ -231,3 +232,17 @@ def extract_email_msg_id(msg_id):
 		return None
 	return ret.group(1)
 
+
+async def is_atom_url(text: str):
+	try:
+		async with httpx.AsyncClient() as ses:
+			res = await ses.get(text)
+			mime = res.headers.get("Content-Type")
+
+			return mime == "application/atom+xml"
+	except: return False
+
+def remove_command(text: str):
+	txt = text.split(" ")
+	txt = text.replace(txt[0] + " ","")
+	return txt
