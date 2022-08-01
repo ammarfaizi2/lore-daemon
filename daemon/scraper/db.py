@@ -112,3 +112,24 @@ class Db():
 			return None
 
 		return res[0]
+
+
+	def get_atom_urls(self):
+		q = """
+			SELECT atom_urls.url
+			FROM atom_urls
+		"""
+		self.cur.execute(q)
+		urls = self.cur.fetchall()
+
+		return [u[0] for u in urls]
+
+
+	def get_broadcast_chats(self):
+		q = """
+			SELECT *
+			FROM broadcast_chats
+		"""
+		self.cur.execute(q)
+
+		return self.cur.fetchall()
