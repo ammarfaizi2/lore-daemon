@@ -130,6 +130,18 @@ class Db():
 		return self.cur.lastrowid
 
 
+	def delete_atom(self, atom: str):
+		q = """
+			DELETE FROM atom_urls
+			WHERE url = %(atom)s
+		"""
+		try:
+			self.cur.execute(q, {"atom": atom})
+			return True
+		except:
+			return False
+
+
 	def get_atom_urls(self):
 		q = """
 			SELECT atom_urls.url

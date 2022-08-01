@@ -3,7 +3,7 @@
 # Copyright (C) 2022  Muhammad Rizki <riskimuhammmad1@gmail.com>
 #
 
-from pyrogram.types import Message
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from pyrogram import filters
 from packages import DaemonClient
 from scraper import utils
@@ -28,3 +28,20 @@ async def add_atom_url(c: DaemonClient, m: Message):
 		return await m.reply(f"This URL already listened for new email.")
 
 	await m.reply(f"Success add **{text}** for listening new email")
+
+
+@DaemonClient.on_message(
+	filters.command("del_atom") &
+	filters.chat(["kiizuah", "nekoha", -1001673279485])
+)
+async def del_atom_url(c: DaemonClient, m: Message):
+	atoms = c.db.get_atom_urls()
+	if len(atoms) == 0:
+		return await m.reply("Currently empty.")
+
+	text = "List of atom URL that currently listened:\n"
+	for u,i in zip(atoms, range(1, len(atoms)+1)):
+		text += f"{i}. {u}\n"
+
+	text += "\nChoose one of the URL above to delete by index below."
+	await m.reply(text)
