@@ -114,6 +114,22 @@ class Db():
 		return res[0]
 
 
+	def insert_atom(self, atom: str):
+		try:
+			return self.__save_atom(atom)
+		except mysql.connector.errors.IntegrityError:
+			#
+			# Duplicate data, skip!
+			#
+			return None
+
+
+	def __save_atom(self, atom: str):
+		q = "INSERT INTO atom_urls (url, created_at) VALUES (%s, %s)"
+		self.cur.execute(q, (atom, datetime.utcnow()))
+		return self.cur.lastrowid
+
+
 	def get_atom_urls(self):
 		q = """
 			SELECT atom_urls.url
