@@ -34,4 +34,29 @@ CREATE TABLE `tg_emails` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 
+DROP TABLE IF EXISTS `atom_urls`;
+CREATE TABLE `atom_urls` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `created_at` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `url` (`url`),
+  KEY `created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
+
+
+DROP TABLE IF EXISTS `broadcast_chats`;
+CREATE TABLE `broadcast_chats` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `chat_id` bigint NOT NULL,
+  `username` varchar(32),
+  `name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci NOT NULL,
+  `type` varchar(32) NOT NULL,
+  `link` varchar(64),
+  `created_at` datetime NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `chat_id` (`chat_id`),
+  KEY `created_at` (`created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
+
 -- 2022-07-07 14:25:28
