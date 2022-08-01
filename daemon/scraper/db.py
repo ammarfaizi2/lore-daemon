@@ -5,6 +5,7 @@
 #
 
 from datetime import datetime
+from typing import Union
 import mysql
 
 
@@ -151,6 +152,51 @@ class Db():
 		urls = self.cur.fetchall()
 
 		return [u[0] for u in urls]
+
+
+	def insert_broadcast(
+		self,
+		chat_id: int,
+		name: str,
+		type: str,
+		created_at: "datetime",
+		username: str = None,
+		link: str = None,
+	):
+		try:
+			return self.__save_broadcast(
+				chat_id=chat_id,
+				name=name,
+				type=type,
+				created_at=created_at,
+				username=username,
+				link=link
+			)
+		except mysql.connector.errors.IntegrityError:
+			#
+			# Duplicate data, skip!
+			#
+			return None
+
+
+	def __save_broadcast(
+		self,
+		chat_id: int,
+		name: str,
+		type: str,
+		created_at: "datetime",
+		username: str = None,
+		link: str = None,
+	):
+		q = """
+			INSERT INTO broadcast_chats
+			(chat_id, username, name, type, link, created_at)
+			VALUES
+			(%s, %s, %s, %s, %s, %s)
+		"""
+		values = (chat_id, username, name, type, link, created_at)
+		self.cur.execute(q, values)
+		return self.cur.lastrowid
 
 
 	def get_broadcast_chats(self):
