@@ -4,6 +4,7 @@
 # Copyright (C) 2022  Ammar Faizi <ammarfaizi2@gnuweeb.org>
 #
 
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from email.message import Message
 from typing import Dict
 from slugify import slugify
@@ -246,3 +247,19 @@ def remove_command(text: str):
 	txt = text.split(" ")
 	txt = text.replace(txt[0] + " ","")
 	return txt
+
+
+def button_numbers(data: list, callback_prefix: str, limit: int = 8):
+	if limit > 8:
+		raise ValueError("Limit value cannot more than 8.")
+
+	lst = []
+	for i in range(1, len(data)+1):
+		button = InlineKeyboardButton(
+			str(i),
+			callback_data=f"{callback_prefix} {i}"
+		)
+		lst.append(button)
+
+	buttons = [lst[i:i + limit ] for i in range(0, len(lst), limit)]
+	return InlineKeyboardMarkup(buttons)

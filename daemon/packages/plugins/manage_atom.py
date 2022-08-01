@@ -44,4 +44,7 @@ async def del_atom_url(c: DaemonClient, m: Message):
 		text += f"{i}. {u}\n"
 
 	text += "\nChoose one of the URL above to delete by index below."
-	await m.reply(text)
+	await m.reply(text, reply_markup=utils.button_numbers(
+		data=atoms,
+		callback_prefix="del_atom"
+	))
