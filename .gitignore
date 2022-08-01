@@ -136,4 +136,5 @@ data.json
 # VSCode editor
 .vscode/
 
+# PATCH files
 *.patch
