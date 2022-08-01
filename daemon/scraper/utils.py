@@ -4,7 +4,7 @@
 # Copyright (C) 2022  Ammar Faizi <ammarfaizi2@gnuweeb.org>
 #
 
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.types import Chat, InlineKeyboardMarkup, InlineKeyboardButton
 from email.message import Message
 from typing import Dict
 from slugify import slugify
@@ -263,3 +263,14 @@ def button_numbers(data: list, callback_prefix: str, limit: int = 8):
 
 	buttons = [lst[i:i + limit ] for i in range(0, len(lst), limit)]
 	return InlineKeyboardMarkup(buttons)
+
+
+def create_chat_link(chat: Chat):
+	if chat.invite_link:
+		return chat.invite_link
+
+	if chat.username:
+		return f"t.me/{chat.username}"
+
+	chat_id_str = str(chat.id).replace("-100","")
+	return f"t.me/c/{chat_id_str}/1"

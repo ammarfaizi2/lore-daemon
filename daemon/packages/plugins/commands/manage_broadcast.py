@@ -6,6 +6,7 @@
 from pyrogram.types import Message
 from pyrogram import filters, enums
 from packages import DaemonClient
+from scraper import utils
 
 
 @DaemonClient.on_message(
@@ -24,7 +25,7 @@ async def add_broadcast(c: DaemonClient, m: Message):
 		type=str(m.chat.type),
 		created_at=m.date,
 		username=m.chat.username,
-		link=m.chat.invite_link
+		link=utils.create_chat_link(m.chat)
 	)
 
 	if inserted is None:
