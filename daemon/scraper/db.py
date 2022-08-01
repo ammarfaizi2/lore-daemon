@@ -12,7 +12,7 @@ class Db():
 	def __init__(self, conn):
 		self.conn = conn
 		self.conn.autocommit = True
-		self.cur = self.conn.cursor()
+		self.cur = self.conn.cursor(buffered=True)
 
 
 	def __del__(self):
