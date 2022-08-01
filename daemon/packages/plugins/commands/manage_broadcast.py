@@ -34,3 +34,37 @@ async def add_broadcast(c: DaemonClient, m: Message):
 		msg = f"Success add this chat for receiving email messages"
 
 	await m.reply(msg)
+
+
+@DaemonClient.on_message(
+	filters.command("del_bc") &
+	filters.chat(["kiizuah", "nekoha", -1001673279485])
+)
+async def del_broadcast(c: DaemonClient, m: Message):
+	if "--list" in m.text:
+		chats = c.db.get_broadcast_chats()
+		if len(chats) == 0:
+			return await m.reply("Currently empty.")
+
+		text = "List of chats that will receive email message:\n"
+		for u,i in zip(chats, range(1, len(chats)+1)):
+			text += f"{i}. **[{u[3]}]({u[5]})**\n"
+
+		text += "\nChoose one of the chat above to delete by index below."
+		return await m.reply(
+			text=text,
+			disable_web_page_preview=True,
+			reply_markup=utils.button_numbers(
+				data=chats,
+				callback_prefix="del_chat"
+			)
+		)
+
+	success = c.db.delete_broadcast(m.chat.id)
+	if not success:
+		msg = "Failed to delete this chat from receiving email message\n"
+		msg += "Maybe it's already been deleted or not exists."
+	else:
+		msg = "Success delete this chat from receiving email message"
+
+	await m.reply(msg)
