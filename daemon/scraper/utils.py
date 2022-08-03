@@ -14,6 +14,7 @@ import os
 import re
 import shutil
 import httpx
+import html
 
 
 def get_email_msg_id(mail):
@@ -218,12 +219,8 @@ def clean_up_after_send_patch(tmp):
 
 
 def fix_utf8_char(text: str):
-	return (
-		text.rstrip()
-		.replace("<", "&lt;")
-		.replace(">","&gt;")
-		.replace("�"," ")
-	)
+	text = text.rstrip().replace("�"," ")
+	return html.escape(html.escape(text))
 
 
 EMAIL_MSG_ID_PATTERN = r"<([^\<\>]+)>"
