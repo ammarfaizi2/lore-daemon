@@ -4,6 +4,7 @@
 # Copyright (C) 2022  Ammar Faizi <ammarfaizi2@gnuweeb.org>
 #
 
+from pyrogram.types import Chat, InlineKeyboardMarkup, InlineKeyboardButton
 from email.message import Message
 from typing import Dict
 from slugify import slugify
@@ -12,6 +13,7 @@ import uuid
 import os
 import re
 import shutil
+import httpx
 
 
 def get_email_msg_id(mail):
@@ -231,3 +233,44 @@ def extract_email_msg_id(msg_id):
 		return None
 	return ret.group(1)
 
+
+async def is_atom_url(text: str):
+	try:
+		async with httpx.AsyncClient() as ses:
+			res = await ses.get(text)
+			mime = res.headers.get("Content-Type")
+
+			return mime == "application/atom+xml"
+	except: return False
+
+def remove_command(text: str):
+	txt = text.split(" ")
+	txt = text.replace(txt[0] + " ","")
+	return txt
+
+
+def button_numbers(data: list, callback_prefix: str, limit: int = 8):
+	if limit > 8:
+		raise ValueError("Limit value cannot more than 8.")
+
+	lst = []
+	for i in range(1, len(data)+1):
+		button = InlineKeyboardButton(
+			str(i),
+			callback_data=f"{callback_prefix} {i}"
+		)
+		lst.append(button)
+
+	buttons = [lst[i:i + limit ] for i in range(0, len(lst), limit)]
+	return InlineKeyboardMarkup(buttons)
+
+
+def create_chat_link(chat: Chat):
+	if chat.invite_link:
+		return chat.invite_link
+
+	if chat.username:
+		return f"t.me/{chat.username}"
+
+	chat_id_str = str(chat.id).replace("-100","")
+	return f"t.me/c/{chat_id_str}/1"

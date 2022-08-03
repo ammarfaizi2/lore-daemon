@@ -22,9 +22,15 @@ def main():
 		api_id=int(os.getenv("API_ID")),
 		api_hash=os.getenv("API_HASH"),
 		bot_token=os.getenv("BOT_TOKEN"),
+		conn=connector.connect(
+			host=os.getenv("DB_HOST"),
+			user=os.getenv("DB_USER"),
+			password=os.getenv("DB_PASS"),
+			database=os.getenv("DB_NAME")
+		),
 		plugins=dict(
 			root="packages.plugins"
-		)
+		),
 	)
 
 	sched = AsyncIOScheduler(
@@ -38,13 +44,7 @@ def main():
 		client=client,
 		sched=sched,
 		scraper=Scraper(),
-		mutexes=BotMutexes(),
-		conn=connector.connect(
-			host=os.getenv("DB_HOST"),
-			user=os.getenv("DB_USER"),
-			password=os.getenv("DB_PASS"),
-			database=os.getenv("DB_NAME")
-		)
+		mutexes=BotMutexes()
 	)
 	sched.start()
 	bot.run()

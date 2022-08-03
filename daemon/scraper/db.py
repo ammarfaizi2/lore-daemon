@@ -5,6 +5,7 @@
 #
 
 from datetime import datetime
+from typing import Union
 import mysql
 
 
@@ -12,7 +13,7 @@ class Db():
 	def __init__(self, conn):
 		self.conn = conn
 		self.conn.autocommit = True
-		self.cur = self.conn.cursor()
+		self.cur = self.conn.cursor(buffered=True)
 
 
 	def __del__(self):
@@ -112,3 +113,106 @@ class Db():
 			return None
 
 		return res[0]
+
+
+	def insert_atom(self, atom: str):
+		try:
+			return self.__save_atom(atom)
+		except mysql.connector.errors.IntegrityError:
+			#
+			# Duplicate data, skip!
+			#
+			return None
+
+
+	def __save_atom(self, atom: str):
+		q = "INSERT INTO atom_urls (url, created_at) VALUES (%s, %s)"
+		self.cur.execute(q, (atom, datetime.utcnow()))
+		return self.cur.lastrowid
+
+
+	def delete_atom(self, atom: str):
+		q = """
+			DELETE FROM atom_urls
+			WHERE url = %(atom)s
+		"""
+		try:
+			self.cur.execute(q, {"atom": atom})
+			return True
+		except:
+			return False
+
+
+	def get_atom_urls(self):
+		q = """
+			SELECT atom_urls.url
+			FROM atom_urls
+		"""
+		self.cur.execute(q)
+		urls = self.cur.fetchall()
+
+		return [u[0] for u in urls]
+
+
+	def insert_broadcast(
+		self,
+		chat_id: int,
+		name: str,
+		type: str,
+		created_at: "datetime",
+		username: str = None,
+		link: str = None,
+	):
+		try:
+			return self.__save_broadcast(
+				chat_id=chat_id,
+				name=name,
+				type=type,
+				created_at=created_at,
+				username=username,
+				link=link
+			)
+		except mysql.connector.errors.IntegrityError:
+			#
+			# Duplicate data, skip!
+			#
+			return None
+
+
+	def __save_broadcast(
+		self,
+		chat_id: int,
+		name: str,
+		type: str,
+		created_at: "datetime",
+		username: str = None,
+		link: str = None,
+	):
+		q = """
+			INSERT INTO broadcast_chats
+			(chat_id, username, name, type, link, created_at)
+			VALUES
+			(%s, %s, %s, %s, %s, %s)
+		"""
+		values = (chat_id, username, name, type, link, created_at)
+		self.cur.execute(q, values)
+		return self.cur.lastrowid
+
+
+	def delete_broadcast(self, chat_id: int):
+		q = """
+			DELETE FROM broadcast_chats
+			WHERE chat_id = %(chat_id)s
+		"""
+		self.cur.execute(q, {"chat_id": chat_id})
+		return self.cur.rowcount > 0
+
+
+	def get_broadcast_chats(self):
+		q = """
+			SELECT *
+			FROM broadcast_chats
+		"""
+		self.cur.execute(q)
+
+		return self.cur.fetchall()

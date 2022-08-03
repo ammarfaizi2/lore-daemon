@@ -8,7 +8,6 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from packages import DaemonClient
 from scraper import Scraper
 from . import utils
-from .db import Db
 import asyncio
 import shutil
 import re
@@ -21,23 +20,13 @@ class BotMutexes():
 
 
 class Bot():
-	ATOM_URLS = [
-		"https://lore.kernel.org/io-uring/new.atom",
-		"https://lore.kernel.org/linux-sgx/new.atom",
-	]
-
-	TG_CHAT_IDS = [
-		"kiizuah"
-	]
-
-
 	def __init__(self, client: DaemonClient, sched: AsyncIOScheduler,
-			scraper: Scraper, mutexes: BotMutexes, conn):
+			scraper: Scraper, mutexes: BotMutexes):
 		self.client = client
 		self.sched = sched
 		self.scraper = scraper
 		self.mutexes = mutexes
-		self.db = Db(conn)
+		self.db = client.db
 		self.isRunnerFixed = False
 
 
@@ -55,7 +44,7 @@ class Bot():
 
 	async def __run(self):
 		print("[__run]: Running...")
-		for url in self.ATOM_URLS:
+		for url in self.db.get_atom_urls():
 			try:
 				await self.__handle_atom_url(url)
 			except:
@@ -80,10 +69,11 @@ class Bot():
 
 
 	async def __handle_mail(self, url, mail):
-		for tg_chat_id in self.TG_CHAT_IDS:
+		chats = self.db.get_broadcast_chats()
+		for chat in chats:
 			async with self.mutexes.send_to_tg:
 				should_wait = await self.__send_to_tg(url, mail,
-									tg_chat_id)
+									chat[1])
 
 			if should_wait:
 				await asyncio.sleep(1)
