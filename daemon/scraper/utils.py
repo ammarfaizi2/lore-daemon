@@ -185,7 +185,7 @@ def create_template(thread: Message, to=None, cc=None):
 			ret = ret[:4000] + "..."
 
 		ret = fix_utf8_char(ret)
-		ret += "\n<code>------------------------------------------------------------------------</code>"
+		ret += f"\n<code>{'-'*72}</code>"
 
 	return ret, files, is_patch
 
