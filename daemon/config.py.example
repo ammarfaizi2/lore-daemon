@@ -1,0 +1,11 @@
+from pyrogram import filters
+from pyrogram.types import Message
+
+# Insert Telegram admin id in the list below
+ADMINS = []
+
+
+async def adm_flt(_, __, m: Message):
+	return m.from_user.id in ADMINS
+
+admin_only = filters.create(adm_flt)
