@@ -6,9 +6,10 @@
 from packages import DaemonClient
 from scraper import utils
 from pyrogram.types import CallbackQuery
+import config
 
 
-@DaemonClient.on_callback_query(group=1)
+@DaemonClient.on_callback_query(config.admin_only, group=1)
 async def on_del_atom(c: DaemonClient, cb: CallbackQuery):
 	if not "del_atom" in cb.data:
 		return
