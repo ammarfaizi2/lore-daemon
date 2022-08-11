@@ -6,9 +6,10 @@
 from packages import DaemonClient
 from scraper import utils
 from pyrogram.types import CallbackQuery
+import config
 
 
-@DaemonClient.on_callback_query(group=2)
+@DaemonClient.on_callback_query(config.admin_only, group=2)
 async def on_del_chat(c: DaemonClient, cb: CallbackQuery):
 	if not "del_chat" in cb.data:
 		return

@@ -138,3 +138,6 @@ data.json
 
 # PATCH files
 *.patch
+
+# configuration file
+daemon/config.py

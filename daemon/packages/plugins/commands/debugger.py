@@ -7,10 +7,12 @@ from pyrogram import Client, filters, enums
 from pyrogram.types import Message
 from textwrap import indent
 import io, import_expression, contextlib, traceback
+import config
+
 
 @Client.on_message(
 	filters.command(['d','debug']) &
-	filters.user(["nekoha", "kiizuah"])
+	config.admin_only
 )
 async def execute_v2(c: Client, m: Message):
 	sep = m.text.split('\n')

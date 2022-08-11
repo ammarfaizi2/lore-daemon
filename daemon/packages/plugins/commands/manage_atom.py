@@ -3,14 +3,16 @@
 # Copyright (C) 2022  Muhammad Rizki <riskimuhammmad1@gmail.com>
 #
 
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.types import Message
 from pyrogram import filters
 from packages import DaemonClient
 from scraper import utils
+import config
+
 
 @DaemonClient.on_message(
 	filters.command("add_atom") &
-	filters.chat(["kiizuah", "nekoha", -1001673279485])
+	config.admin_only
 )
 async def add_atom_url(c: DaemonClient, m: Message):
 	if len(m.command) <= 1:
@@ -32,7 +34,7 @@ async def add_atom_url(c: DaemonClient, m: Message):
 
 @DaemonClient.on_message(
 	filters.command("del_atom") &
-	filters.chat(["kiizuah", "nekoha", -1001673279485])
+	config.admin_only
 )
 async def del_atom_url(c: DaemonClient, m: Message):
 	atoms = c.db.get_atom_urls()

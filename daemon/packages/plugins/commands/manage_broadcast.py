@@ -7,11 +7,12 @@ from pyrogram.types import Message
 from pyrogram import filters, enums
 from packages import DaemonClient
 from scraper import utils
+import config
 
 
 @DaemonClient.on_message(
 	filters.command("add_bc") &
-	(filters.private | filters.group)
+	config.admin_only
 )
 async def add_broadcast(c: DaemonClient, m: Message):
 	if m.chat.type == enums.ChatType.PRIVATE:
@@ -38,7 +39,7 @@ async def add_broadcast(c: DaemonClient, m: Message):
 
 @DaemonClient.on_message(
 	filters.command("del_bc") &
-	filters.chat(["kiizuah", "nekoha", -1001673279485])
+	config.admin_only
 )
 async def del_broadcast(c: DaemonClient, m: Message):
 	if "--list" in m.text:

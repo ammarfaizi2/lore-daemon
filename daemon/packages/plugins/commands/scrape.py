@@ -9,6 +9,7 @@ from pyrogram import filters
 from packages import DaemonClient
 from scraper import Scraper
 from scraper import utils
+import config
 import shutil
 import re
 import asyncio
@@ -23,7 +24,7 @@ import asyncio
 LORE_CMD_URL_PATTERN = r"^(?:\/|\.|\!)lore\s+(https?:\/\/lore\.kernel\.org\/\S+)"
 @DaemonClient.on_message(
 	filters.regex(LORE_CMD_URL_PATTERN) &
-	filters.chat(["kiizuah", "nekoha", -1001673279485])
+	config.admin_only
 )
 async def scrap_email(c: DaemonClient, m: Message):
 	p = re.search(LORE_CMD_URL_PATTERN, m.text)
