@@ -5,7 +5,6 @@
 #
 
 from datetime import datetime
-from typing import Union
 import mysql
 
 
