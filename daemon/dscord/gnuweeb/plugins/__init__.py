@@ -5,10 +5,13 @@
 
 
 from discord.ext import commands
+
 from .events import Events
+from .basic_commands import BasicCommands
 
 
 class Plugins(
+	BasicCommands,
 	Events
 ): pass
 
