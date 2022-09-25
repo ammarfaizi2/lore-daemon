@@ -4,8 +4,10 @@
 #
 
 from .on_ready import OnReady
+from .on_error import OnError
 
 
 class Events(
 	OnReady,
+	OnError
 ): pass
