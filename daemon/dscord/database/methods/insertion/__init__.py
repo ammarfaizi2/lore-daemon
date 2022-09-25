@@ -5,8 +5,10 @@
 
 
 from .insert_atom import InsertAtom
+from .insert_broadcast import InsertBroadcast
 
 
 class Insertion(
-	InsertAtom
+	InsertAtom,
+	InsertBroadcast
 ): pass
