@@ -5,5 +5,5 @@
 #
 
 from .scraper import Scraper
-from .bot import BotMutexes
-from .bot import Bot
+from .listener import BotMutexes
+from .listener import Bot

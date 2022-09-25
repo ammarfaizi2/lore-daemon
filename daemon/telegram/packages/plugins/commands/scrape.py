@@ -7,8 +7,8 @@
 from pyrogram.types import Message
 from pyrogram import filters
 from telegram.packages import DaemonClient
-from telegram.scraper import Scraper
-from telegram.scraper import utils
+from telegram.mailer import Scraper
+from telegram.mailer import utils
 from telegram import config
 import shutil
 import re
