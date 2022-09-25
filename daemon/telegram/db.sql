@@ -7,8 +7,8 @@ SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
 
 SET NAMES utf8mb4;
 
-DROP TABLE IF EXISTS `emails`;
-CREATE TABLE `emails` (
+DROP TABLE IF EXISTS `tg_emails`;
+CREATE TABLE `tg_emails` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `message_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `created_at` datetime NOT NULL,
@@ -18,8 +18,8 @@ CREATE TABLE `emails` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 
-DROP TABLE IF EXISTS `tg_emails`;
-CREATE TABLE `tg_emails` (
+DROP TABLE IF EXISTS `tg_mail_msg`;
+CREATE TABLE `tg_mail_msg` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `email_id` bigint unsigned NOT NULL,
   `chat_id` bigint NOT NULL,
@@ -30,12 +30,12 @@ CREATE TABLE `tg_emails` (
   KEY `chat_id` (`chat_id`),
   KEY `tg_msg_id` (`tg_msg_id`),
   KEY `created_at` (`created_at`),
-  CONSTRAINT `tg_emails_ibfk_2` FOREIGN KEY (`email_id`) REFERENCES `emails` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+  CONSTRAINT `tg_mail_msg_ibfk_2` FOREIGN KEY (`email_id`) REFERENCES `tg_emails` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 
-DROP TABLE IF EXISTS `atom_urls`;
-CREATE TABLE `atom_urls` (
+DROP TABLE IF EXISTS `tg_atoms`;
+CREATE TABLE `tg_atoms` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_520_ci NOT NULL,
   `created_at` datetime NOT NULL,
@@ -45,8 +45,8 @@ CREATE TABLE `atom_urls` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_520_ci;
 
 
-DROP TABLE IF EXISTS `broadcast_chats`;
-CREATE TABLE `broadcast_chats` (
+DROP TABLE IF EXISTS `tg_broadcasts`;
+CREATE TABLE `tg_broadcasts` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `chat_id` bigint NOT NULL,
   `username` varchar(32),

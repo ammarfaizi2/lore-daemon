@@ -20,7 +20,7 @@ async def add_broadcast(c: DaemonClient, m: Message):
 	else:
 		chat_name = m.chat.title
 
-	inserted = c.db.insert_broadcast(
+	inserted = c.db.save_broadcast(
 		chat_id=m.chat.id,
 		name=chat_name,
 		type=str(m.chat.type),

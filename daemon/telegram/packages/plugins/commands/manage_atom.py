@@ -25,7 +25,7 @@ async def add_atom_url(c: DaemonClient, m: Message):
 	if not is_atom:
 		return await m.reply("Invalid Atom URL")
 
-	inserted = c.db.insert_atom(text)
+	inserted = c.db.save_atom(text)
 	if inserted is None:
 		return await m.reply(f"This URL already listened for new email.")
 

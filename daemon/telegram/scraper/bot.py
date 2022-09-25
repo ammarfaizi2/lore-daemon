@@ -112,7 +112,7 @@ class Bot():
 				tg_chat_id, text,reply_to, url
 			)
 
-		self.db.insert_telegram(email_id, m.chat.id, m.id)
+		self.db.save_telegram_mail(email_id, m.chat.id, m.id)
 		for d, f in files:
 			await m.reply_document(f"{d}/{f}", file_name=f)
 			await asyncio.sleep(1)
@@ -124,11 +124,11 @@ class Bot():
 
 
 	def __need_to_send_to_telegram(self, email_msg_id, tg_chat_id):
-		email_id = self.db.save_email_msg_id(email_msg_id)
+		email_id = self.db.save_email(email_msg_id)
 		if email_id:
 			return email_id
 
-		email_id = self.db.need_to_send_to_tg(email_msg_id, tg_chat_id)
+		email_id = self.db.get_email_id(email_msg_id, tg_chat_id)
 		return email_id
 
 
@@ -141,4 +141,4 @@ class Bot():
 		if not reply_to:
 			return None
 
-		return self.db.get_tg_reply_to(reply_to, tg_chat_id)
+		return self.db.get_reply_id(reply_to, tg_chat_id)

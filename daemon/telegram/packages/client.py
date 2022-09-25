@@ -9,7 +9,7 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from typing import Union
 from email.message import Message
 from scraper import utils
-from scraper.db import Db
+from database import DB
 from .decorator import handle_flood
 
 
@@ -18,7 +18,7 @@ class DaemonClient(Client):
 		api_hash: str, conn, **kwargs):
 		super().__init__(name, api_id,
 				api_hash, **kwargs)
-		self.db = Db(conn)
+		self.db = DB(conn)
 
 
 	@handle_flood
