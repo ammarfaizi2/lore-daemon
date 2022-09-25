@@ -7,10 +7,12 @@
 from .insert_atom import InsertAtom
 from .insert_broadcast import InsertBroadcast
 from .insert_discord import InsertDiscord
+from .insert_email import InsertEmail
 
 
 class Insertion(
 	InsertAtom,
 	InsertBroadcast,
-	InsertDiscord
+	InsertDiscord,
+	InsertEmail
 ): pass
