@@ -4,6 +4,7 @@
 # Copyright (C) 2022  Ammar Faizi <ammarfaizi2@gnuweeb.org>
 #
 
+from pyrogram.types import Message
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from packages import DaemonClient
 from scraper import Scraper
@@ -72,7 +73,7 @@ class Bot():
 		chats = self.db.get_broadcast_chats()
 		for chat in chats:
 			async with self.mutexes.send_to_tg:
-				should_wait = await self.__send_to_tg(url, mail,
+				should_wait = await self.__send_mail(url, mail,
 									chat[1])
 
 			if should_wait:
@@ -80,7 +81,7 @@ class Bot():
 
 
 	# @__must_hold(self.mutexes.send_to_tg)
-	async def __send_to_tg(self, url, mail, tg_chat_id):
+	async def __send_mail(self, url, mail, tg_chat_id):
 		email_msg_id = utils.get_email_msg_id(mail)
 		if not email_msg_id:
 			#
@@ -89,7 +90,7 @@ class Bot():
 			#
 			return False
 
-		email_id = self.__need_to_send_to_telegram(email_msg_id,
+		email_id = self.__mail_id_from_db(email_msg_id,
 							tg_chat_id)
 		if not email_id:
 			#
@@ -99,16 +100,16 @@ class Bot():
 			return False
 
 		text, files, is_patch = utils.create_template(mail)
-		reply_to = self.get_tg_reply_to(mail, tg_chat_id)
+		reply_to = self.get_reply(mail, tg_chat_id)
 		url = str(re.sub(r"/raw$", "", url))
 
 		if is_patch:
-			m = await self.client.send_patch_email(
+			m: "Message" = await self.client.send_patch_email(
 				mail, tg_chat_id, text, reply_to, url
 			)
 		else:
 			text = "#ml\n" + text
-			m = await self.client.send_text_email(
+			m: "Message" = await self.client.send_text_email(
 				tg_chat_id, text,reply_to, url
 			)
 
@@ -123,7 +124,7 @@ class Bot():
 		return True
 
 
-	def __need_to_send_to_telegram(self, email_msg_id, tg_chat_id):
+	def __mail_id_from_db(self, email_msg_id, tg_chat_id):
 		email_id = self.db.save_email(email_msg_id)
 		if email_id:
 			return email_id
@@ -132,7 +133,7 @@ class Bot():
 		return email_id
 
 
-	def get_tg_reply_to(self, mail, tg_chat_id):
+	def get_reply(self, mail, tg_chat_id):
 		reply_to = mail.get("in-reply-to")
 		if not reply_to:
 			return None
