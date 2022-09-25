@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: GPL-2.0-only
+#
+# Copyright (C) 2022  Muhammad Rizki <kiizuha@gnuweeb.org>
+#
+
+# Paste the admin role ID below
+# to filter only admin who can
+# access add/delete lore commands.
+ADMIN_ROLE_ID =
+
+# The activity name like "Playing Genshin Impact"
+# you set the value as "Genshin Impact"
+ACTIVITY_NAME =

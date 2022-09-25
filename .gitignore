@@ -142,3 +142,4 @@ data.json
 # configuration file
 daemon/*.env
 daemon/telegram/config.py
+daemon/dscord/config.py
