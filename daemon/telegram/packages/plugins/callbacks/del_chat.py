@@ -4,7 +4,7 @@
 #
 
 from telegram.packages import DaemonClient
-from telegram.mailer import utils
+from atom import utils
 from pyrogram.types import CallbackQuery
 from telegram import config
 

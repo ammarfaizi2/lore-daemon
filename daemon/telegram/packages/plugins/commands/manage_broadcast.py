@@ -6,7 +6,7 @@
 from pyrogram.types import Message
 from pyrogram import filters, enums
 from telegram.packages import DaemonClient
-from telegram.mailer import utils
+from atom import utils
 from telegram import config
 
 

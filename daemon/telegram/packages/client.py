@@ -8,7 +8,7 @@ from pyrogram.enums import ParseMode
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from typing import Union
 from email.message import Message
-from telegram.mailer import utils
+from atom import utils
 from telegram.database import DB
 from .decorator import handle_flood
 

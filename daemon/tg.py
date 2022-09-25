@@ -5,12 +5,12 @@
 #
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from telegram.scraper import BotMutexes
 from dotenv import load_dotenv
 from mysql import connector
+from atom import Scraper
 from telegram.packages import DaemonClient
-from telegram.scraper import Scraper
-from telegram.scraper import Bot
+from telegram.mailer import BotMutexes
+from telegram.mailer import Bot
 import os
 
 
