@@ -140,4 +140,4 @@ data.json
 *.patch
 
 # configuration file
-daemon/config.py
+daemon/telegram/config.py
