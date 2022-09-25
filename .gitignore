@@ -140,4 +140,6 @@ data.json
 *.patch
 
 # configuration file
-daemon/config.py
+daemon/*.env
+daemon/telegram/config.py
+daemon/dscord/config.py
