@@ -5,20 +5,20 @@
 #
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from scraper import BotMutexes
+from telegram.scraper import BotMutexes
 from dotenv import load_dotenv
 from mysql import connector
-from packages import DaemonClient
-from scraper import Scraper
-from scraper import Bot
+from telegram.packages import DaemonClient
+from telegram.scraper import Scraper
+from telegram.scraper import Bot
 import os
 
 
 def main():
-	load_dotenv()
+	load_dotenv("telegram.env")
 
 	client = DaemonClient(
-		"storage/EmailScraper",
+		"telegram/storage/EmailScraper",
 		api_id=int(os.getenv("API_ID")),
 		api_hash=os.getenv("API_HASH"),
 		bot_token=os.getenv("BOT_TOKEN"),
@@ -29,7 +29,7 @@ def main():
 			database=os.getenv("DB_NAME")
 		),
 		plugins=dict(
-			root="packages.plugins"
+			root="telegram.packages.plugins"
 		),
 	)
 

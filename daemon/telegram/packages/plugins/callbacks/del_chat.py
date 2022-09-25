@@ -3,10 +3,10 @@
 # Copyright (C) 2022  Muhammad Rizki <riskimuhammmad1@gmail.com>
 #
 
-from packages import DaemonClient
-from scraper import utils
+from telegram.packages import DaemonClient
+from telegram.scraper import utils
 from pyrogram.types import CallbackQuery
-import config
+from telegram import config
 
 
 @DaemonClient.on_callback_query(config.admin_only, group=2)

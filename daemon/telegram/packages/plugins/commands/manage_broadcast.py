@@ -5,9 +5,9 @@
 
 from pyrogram.types import Message
 from pyrogram import filters, enums
-from packages import DaemonClient
-from scraper import utils
-import config
+from telegram.packages import DaemonClient
+from telegram.scraper import utils
+from telegram import config
 
 
 @DaemonClient.on_message(

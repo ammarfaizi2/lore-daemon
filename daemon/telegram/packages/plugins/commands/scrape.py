@@ -6,10 +6,10 @@
 
 from pyrogram.types import Message
 from pyrogram import filters
-from packages import DaemonClient
-from scraper import Scraper
-from scraper import utils
-import config
+from telegram.packages import DaemonClient
+from telegram.scraper import Scraper
+from telegram.scraper import utils
+from telegram import config
 import shutil
 import re
 import asyncio

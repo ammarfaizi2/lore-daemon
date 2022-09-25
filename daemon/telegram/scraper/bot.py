@@ -6,8 +6,8 @@
 
 from pyrogram.types import Message
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from packages import DaemonClient
-from scraper import Scraper
+from telegram.packages import DaemonClient
+from telegram.scraper import Scraper
 from . import utils
 import asyncio
 import shutil

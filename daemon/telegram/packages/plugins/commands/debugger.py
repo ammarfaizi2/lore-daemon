@@ -7,7 +7,7 @@ from pyrogram import Client, filters, enums
 from pyrogram.types import Message
 from textwrap import indent
 import io, import_expression, contextlib, traceback
-import config
+from telegram import config
 
 
 @Client.on_message(
