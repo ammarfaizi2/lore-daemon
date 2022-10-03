@@ -4,8 +4,10 @@
 #
 
 from .manage_atom import ManageAtomSC
+from .manage_broadcast import ManageBroadcastSC
 
 
 class SlashCommands(
 	ManageAtomSC,
+	ManageBroadcastSC
 ): pass
