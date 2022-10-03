@@ -7,6 +7,7 @@ from discord.ext import commands
 from discord import Interaction
 from discord import app_commands
 
+from atom import utils
 from dscord.gnuweeb import filters
 
 
@@ -37,3 +38,26 @@ class ManageAtomSC(commands.Cog):
 			text += f"{n}. {u}\n"
 
 		await i.response.send_message(text, ephemeral=True)
+
+
+	@atom.command(
+		name="add",
+		description="Add lore atom URL for receiving lore emails."
+	)
+	@app_commands.describe(url='Lore atom URL.')
+	@filters.lore_admin
+	async def add_atom(self, i: "Interaction", url: str):
+		is_atom = await utils.is_atom_url(url)
+		if not is_atom:
+			t = "Invalid Atom URL."
+			await i.response.send_message(t, ephemeral=True)
+			return
+
+		inserted = self.bot.db.save_atom(url)
+		if inserted is None:
+			t = f"This URL already listened for new email."
+			await i.response.send_message(t, ephemeral=True)
+			return
+
+		t = f"Success add **{url}** for listening new email."
+		await i.response.send_message(t, ephemeral=True)
