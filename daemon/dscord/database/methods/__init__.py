@@ -6,9 +6,11 @@
 
 from .insertion import Insertion
 from .getter import Getter
+from .deletion import Deletion
 
 
 class DBMethods(
 	Insertion,
-	Getter
+	Getter,
+	Deletion
 ): pass
