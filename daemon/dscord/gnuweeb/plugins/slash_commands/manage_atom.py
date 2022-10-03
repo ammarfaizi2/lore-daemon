@@ -61,3 +61,21 @@ class ManageAtomSC(commands.Cog):
 
 		t = f"Success add **{url}** for listening new email."
 		await i.response.send_message(t, ephemeral=True)
+
+
+	@atom.command(
+		name="delete",
+		description="Delete lore atom URL from receiving lore emails."
+	)
+	@app_commands.describe(url='Lore atom URL.')
+	@filters.lore_admin
+	async def del_atom(self, i: "Interaction", url: str):
+		success = self.bot.db.delete_atom(url)
+		if not success:
+			t = "Failed to delete atom URL\n"
+			t += "Maybe because already deleted or not exists."
+			await i.response.send_message(t, ephemeral=True)
+			return
+
+		t = f"Success delete **{url}** from receiving lore emails."
+		await i.response.send_message(t, ephemeral=True)
