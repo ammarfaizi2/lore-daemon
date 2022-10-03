@@ -3,10 +3,36 @@
 # Copyright (C) 2022  Muhammad Rizki <kiizuha@gnuweeb.org>
 #
 
-import discord
+
+# built-in/dev package imports
 import asyncio
 from typing import Any
 from functools import wraps
+
+# Discord imports
+import discord
+from discord import Interaction
+
+# gnuweeb package import
+from dscord import config
+
+
+def lore_admin(func):
+	@wraps(func)
+	async def callback(*args: Any, **kwargs: Any) -> Any:
+		i: "Interaction" = args[1]
+		user_roles = [role.id for role in i.user.roles]
+
+		if config.ADMIN_ROLE_ID not in user_roles:
+			return await i.response.send_message(
+				"Sorry, you don't have this permission\n"\
+				"Tell the server admin to add you lore admin role.",
+				ephemeral=True
+			)
+		if config.ADMIN_ROLE_ID in user_roles:
+			return await func(*args, **kwargs)
+
+	return callback
 
 
 def wait_on_limit(func):
