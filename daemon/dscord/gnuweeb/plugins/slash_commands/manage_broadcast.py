@@ -65,3 +65,20 @@ class ManageBroadcastSC(commands.Cog):
 
 		t = f"Success add this channel for send email messages."
 		await i.response.send_message(t, ephemeral=True)
+
+
+	@broadcast.command(
+		name="delete",
+		description="Delete broadcast channel from sending email messages."
+	)
+	@filters.lore_admin
+	async def del_channel(self, i: "Interaction"):
+		success = self.bot.db.delete_broadcast(i.channel_id)
+		if not success:
+			t = "Failed to delete this channel\n"
+			t += "Maybe because already deleted or not exists."
+			await i.response.send_message(t, ephemeral=True)
+			return
+
+		t = f"Success delete this channel from sending email messages."
+		await i.response.send_message(t, ephemeral=True)
