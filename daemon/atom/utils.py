@@ -212,7 +212,7 @@ def create_template(thread: Message, platform: str, to=None, cc=None):
 	return ret, files, is_patch
 
 
-def prepare_send_patch(mail, text, url, platform: str):
+def prepare_patch(mail, text, url, platform: str):
 	tmp = gen_temp(url, platform)
 	fnm = str(mail.get("subject"))
 	sch = re.search(PATCH_PATTERN, fnm, re.IGNORECASE)
@@ -238,7 +238,7 @@ def prepare_send_patch(mail, text, url, platform: str):
 	return tmp, file, caption, url
 
 
-def clean_up_after_send_patch(tmp):
+def remove_patch(tmp):
 	shutil.rmtree(tmp)
 
 

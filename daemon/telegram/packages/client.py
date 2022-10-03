@@ -56,7 +56,7 @@ class DaemonClient(Client):
 		parse_mode: ParseMode = ParseMode.HTML
 	) -> Message:
 		print("[send_patch_email]")
-		tmp, doc, caption, url = utils.prepare_send_patch(
+		tmp, doc, caption, url = utils.prepare_patch(
 			mail, text, url, "telegram"
 		)
 		m = await self.send_document(
@@ -73,5 +73,5 @@ class DaemonClient(Client):
 			])
 		)
 
-		utils.clean_up_after_send_patch(tmp)
+		utils.remove_patch(tmp)
 		return m
