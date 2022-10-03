@@ -13,6 +13,8 @@ class OnReady(commands.Cog):
 
 	@commands.Cog.listener()
 	async def on_ready(self):
+		self.bot.mailer.run()
+
 		t = "[ GNU/Weeb Bot is connected ]\n\n"
 		t += f"ID   : {self.bot.user.id}\n"
 		t += f"Name : {self.bot.user.display_name}\n"

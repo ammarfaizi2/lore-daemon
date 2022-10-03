@@ -20,6 +20,7 @@ class GWClient(commands.Bot):
 		self.db = DB(db_conn)
 		intents = Intents.default()
 		intents.message_content = True
+		self.mailer = None
 		super().__init__(
 			command_prefix=["$", "."],
 			description="Just a bot for receiving lore emails.",
