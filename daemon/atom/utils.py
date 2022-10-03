@@ -145,7 +145,6 @@ def extract_body(thread: Message, platform: str):
 
 	ret = ""
 	files = []
-	temp = gen_temp(str(uuid.uuid4()), platform)
 	for p in thread.get_payload():
 		fname = p.get_filename()
 		payload = p.get_payload(decode=True)
@@ -157,6 +156,7 @@ def extract_body(thread: Message, platform: str):
 			ret += f"{payload.decode(errors='replace')}\n".lstrip()
 			continue
 
+		temp = gen_temp(str(uuid.uuid4()), platform)
 		with open(f"{temp}/{fname}", "wb") as f:
 			f.write(payload)
 			files.append((temp, fname))
