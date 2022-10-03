@@ -5,7 +5,10 @@
 #
 
 
-class DB:
+from .methods import DBMethods
+
+
+class DB(DBMethods):
 	def __init__(self, conn):
 		self.conn = conn
 		self.conn.autocommit = True
