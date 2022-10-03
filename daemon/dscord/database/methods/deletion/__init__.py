@@ -5,8 +5,10 @@
 
 
 from .delete_atom import DeleteAtom
+from .delete_broadcast import DeleteBroadcast
 
 
 class Deletion(
 	DeleteAtom,
+	DeleteBroadcast
 ): pass
