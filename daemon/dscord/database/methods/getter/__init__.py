@@ -6,9 +6,11 @@
 
 from .get_atom_urls import GetAtomURL
 from .get_broadcast_chats import GetBroadcastChats
+from .get_email_id import GetEmailID
 
 
 class Getter(
 	GetAtomURL,
-	GetBroadcastChats
+	GetBroadcastChats,
+	GetEmailID
 ): pass
