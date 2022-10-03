@@ -7,6 +7,7 @@ from discord.ext import commands
 from discord import Interaction
 from discord import app_commands
 
+from atom import utils
 from dscord.gnuweeb import filters
 
 
@@ -39,3 +40,28 @@ class ManageBroadcastSC(commands.Cog):
 			text += f"Link: {u[4]}\n\n"
 
 		await i.response.send_message(text, ephemeral=True)
+
+
+	@broadcast.command(
+		name="add",
+		description="Add broadcast channel for sending lore emails."
+	)
+	@filters.lore_admin
+	async def add_channel(self, i: "Interaction"):
+		inserted = self.bot.db.save_broadcast(
+			guild_id=i.guild_id,
+			channel_id=i.channel_id,
+			channel_name=i.channel.name,
+			channel_link=utils.channel_link(
+				guild_id=i.guild_id,
+				channel_id=i.channel_id
+			)
+		)
+
+		if inserted is None:
+			t = f"This channel already added for send email messages."
+			await i.response.send_message(t, ephemeral=True)
+			return
+
+		t = f"Success add this channel for send email messages."
+		await i.response.send_message(t, ephemeral=True)
