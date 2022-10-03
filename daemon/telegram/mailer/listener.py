@@ -99,7 +99,7 @@ class Bot():
 			#
 			return False
 
-		text, files, is_patch = utils.create_template(mail)
+		text, files, is_patch = utils.create_template(mail, "telegram")
 		reply_to = self.get_reply(mail, tg_chat_id)
 		url = str(re.sub(r"/raw$", "", url))
 

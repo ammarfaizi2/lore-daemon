@@ -56,7 +56,9 @@ class DaemonClient(Client):
 		parse_mode: ParseMode = ParseMode.HTML
 	) -> Message:
 		print("[send_patch_email]")
-		tmp, doc, caption, url = utils.prepare_send_patch(mail, text, url)
+		tmp, doc, caption, url = utils.prepare_send_patch(
+			mail, text, url, "telegram"
+		)
 		m = await self.send_document(
 			chat_id=chat_id,
 			document=doc,

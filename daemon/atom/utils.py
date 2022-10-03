@@ -113,25 +113,39 @@ def consruct_to_n_cc(to: list, cc: list):
 	return ret
 
 
-def gen_temp(name: str):
+def gen_temp(name: str, platform: str):
+	platform = platform.lower()
+	plt_ls = ["telegram", "discord"]
+
+	if platform not in plt_ls:
+		t = f"Platform {platform} is not found, "
+		t += f"only {', '.join(plt_ls)} is available"
+		raise ValueError(f"Platform {platform} is not found")
+
 	md5 = hashlib.md5(name.encode()).hexdigest()
-	ret = os.getenv("STORAGE_DIR", "storage") + "/" + md5
+	store_dir = os.getenv("STORAGE_DIR", "storage")
+	platform = platform.replace("discord", "dscord")
+	path = f"{platform}/{store_dir}/{md5}"
 	try:
-		os.mkdir(ret)
+		os.mkdir(path)
 	except FileExistsError:
 		pass
 
-	return ret
+	return path
 
 
-def extract_body(thread: Message):
+def extract_body(thread: Message, platform: str):
 	if not thread.is_multipart():
-		p = thread.get_payload(decode=True)
-		return f"{p.decode(errors='replace')}\n".lstrip(), []
+		p = thread.get_payload(decode=True).decode(errors='replace')
+
+		if platform == "discord":
+			p = quote_reply(p)
+
+		return f"{p}\n".lstrip(), []
 
 	ret = ""
 	files = []
-	temp = gen_temp(str(uuid.uuid4()))
+	temp = gen_temp(str(uuid.uuid4()), platform)
 	for p in thread.get_payload():
 		fname = p.get_filename()
 		payload = p.get_payload(decode=True)
@@ -164,35 +178,42 @@ def __is_patch(subject, content):
 	return True
 
 
-def create_template(thread: Message, to=None, cc=None):
+def create_template(thread: Message, platform: str, to=None, cc=None):
 	if not to:
 		to = extract_list("to", thread)
 	if not cc:
 		cc = extract_list("cc", thread)
+	if platform == "telegram":
+		substr = 4000
+		border = f"\n<code>{'-'*72}</code>"
+	else:
+		substr = 1900
+		border = f"\n{'-'*80}"
 
 	subject = thread.get('subject')
 	ret = f"From: {thread.get('from')}\n"
 	ret += consruct_to_n_cc(to, cc)
 	ret += f"Date: {thread.get('date')}\n"
 	ret += f"Subject: {subject}\n\n"
-	content, files = extract_body(thread)
+	content, files = extract_body(thread, platform)
 	is_patch = __is_patch(subject, content)
 
 	if is_patch:
 		ret += content
 	else:
 		ret += content.strip().replace("\t", "        ")
-		if len(ret) >= 4000:
-			ret = ret[:4000] + "..."
 
-		ret = fix_utf8_char(ret)
-		ret += f"\n<code>{'-'*72}</code>"
+		if len(ret) >= substr:
+			ret = ret[:substr] + "..."
+
+		ret = fix_utf8_char(ret, platform == "telegram")
+		ret += border
 
 	return ret, files, is_patch
 
 
-def prepare_send_patch(mail, text, url):
-	tmp = gen_temp(url)
+def prepare_send_patch(mail, text, url, platform: str):
+	tmp = gen_temp(url, platform)
 	fnm = str(mail.get("subject"))
 	sch = re.search(PATCH_PATTERN, fnm, re.IGNORECASE)
 
@@ -210,7 +231,10 @@ def prepare_send_patch(mail, text, url):
 	with open(file, "wb") as f:
 		f.write(bytes(text, encoding="utf8"))
 
-	caption = "#patch #ml\n" + fix_utf8_char(cap)
+	caption = "#patch #ml"
+	if platform == "telegram":
+		caption += fix_utf8_char("\n" + cap, True)
+
 	return tmp, file, caption, url
 
 
@@ -218,9 +242,11 @@ def clean_up_after_send_patch(tmp):
 	shutil.rmtree(tmp)
 
 
-def fix_utf8_char(text: str):
-	text = text.rstrip().replace("�"," ")
-	return html.escape(html.escape(text))
+def fix_utf8_char(text: str, html_escape: bool = True):
+	t = text.rstrip().replace("�"," ")
+	if html_escape:
+		t = html.escape(html.escape(text))
+	return t
 
 
 EMAIL_MSG_ID_PATTERN = r"<([^\<\>]+)>"
@@ -239,6 +265,15 @@ async def is_atom_url(text: str):
 
 			return mime == "application/atom+xml"
 	except: return False
+
+def quote_reply(text: str):
+	a = ""
+	for b in text.split("\n"):
+		b = b.replace(">\n", "> ")
+		if b.startswith(">"):
+			a += "> "
+		a += f"{b}\n"
+	return a
 
 def remove_command(text: str):
 	txt = text.split(" ")
