@@ -306,3 +306,7 @@ def create_chat_link(chat: Chat):
 
 	chat_id_str = str(chat.id).replace("-100","")
 	return f"t.me/c/{chat_id_str}/1"
+
+
+def channel_link(guild_id: int, channel_id: int):
+	return f"https://discord.com/channels/{guild_id}/{channel_id}"
