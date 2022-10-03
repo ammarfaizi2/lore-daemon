@@ -5,8 +5,10 @@
 
 
 from .get_atom_urls import GetAtomURL
+from .get_broadcast_chats import GetBroadcastChats
 
 
 class Getter(
-	GetAtomURL
+	GetAtomURL,
+	GetBroadcastChats
 ): pass
