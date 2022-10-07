@@ -13,9 +13,14 @@ class OnReady(commands.Cog):
 
 	@commands.Cog.listener()
 	async def on_ready(self):
+		self.bot.mailer.run()
+		prefix = self.bot.command_prefix[0]
+
 		t = "[ GNU/Weeb Bot is connected ]\n\n"
 		t += f"ID   : {self.bot.user.id}\n"
 		t += f"Name : {self.bot.user.display_name}\n"
 		t += f"Tags : {self.bot.user}\n\n"
-		t += "Ready to get the latest of lore kernel emails."
+		t += f"Send `{prefix}sync` message to the Discord channel "
+		t += "where the bot is running.\n"
+
 		print(t)

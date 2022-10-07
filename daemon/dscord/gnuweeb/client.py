@@ -7,12 +7,20 @@ import discord
 from discord.ext import commands
 from discord import Intents
 from dscord.config import ACTIVITY_NAME
+from typing import Union
+
+from . import filters
+from . import models
+from atom import utils
+from dscord.database import DB
 
 
 class GWClient(commands.Bot):
-	def __init__(self) -> None:
+	def __init__(self, db_conn) -> None:
+		self.db = DB(db_conn)
 		intents = Intents.default()
 		intents.message_content = True
+		self.mailer = None
 		super().__init__(
 			command_prefix=["$", "."],
 			description="Just a bot for receiving lore emails.",
@@ -26,3 +34,45 @@ class GWClient(commands.Bot):
 			name=".gnuweeb.plugins",
 			package="dscord"
 		)
+
+
+	@filters.wait_on_limit
+	async def send_text_email(self, guild_id: int, chat_id: int, text: str,
+				reply_to: Union[int, None] = None, url: str = None):
+		print("[send_text_email]")
+		channel = self.get_channel(chat_id)
+
+		return await channel.send(
+			content=text,
+			reference=discord.MessageReference(
+				guild_id=guild_id,
+				channel_id=chat_id,
+				message_id=reply_to
+			) if reply_to else None,
+			view=models.FullMessageBtn(url)
+		)
+
+
+	@filters.wait_on_limit
+	async def send_patch_email(self, mail, guild_id: int, chat_id: int, text: str,
+				reply_to: Union[int, None] = None, url: str = None):
+		print("[send_patch_email]")
+		tmp, doc, caption, url = utils.prepare_patch(
+			mail, text, url, "discord"
+		)
+		channel = self.get_channel(chat_id)
+
+		m = await channel.send(
+			content=caption,
+			file=discord.File(doc),
+			reference=discord.MessageReference(
+				guild_id=guild_id,
+				channel_id=chat_id,
+				message_id=reply_to
+			) if reply_to else None,
+
+			view=models.FullMessageBtn(url)
+		)
+
+		utils.remove_patch(tmp)
+		return m

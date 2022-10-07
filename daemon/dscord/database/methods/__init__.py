@@ -5,8 +5,12 @@
 
 
 from .insertion import Insertion
+from .getter import Getter
+from .deletion import Deletion
 
 
 class DBMethods(
-	Insertion
+	Insertion,
+	Getter,
+	Deletion
 ): pass

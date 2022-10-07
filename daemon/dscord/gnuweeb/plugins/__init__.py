@@ -8,11 +8,13 @@ from discord.ext import commands
 
 from .events import Events
 from .basic_commands import BasicCommands
+from .slash_commands import SlashCommands
 
 
 class Plugins(
 	BasicCommands,
-	Events
+	Events,
+	SlashCommands
 ): pass
 
 
