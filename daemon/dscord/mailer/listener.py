@@ -125,9 +125,9 @@ class Listener:
 
 		for d, f in files:
 			await m.reply(file=File(f"{d}/{f}"))
-			if files.index((d,f)) == len(files)-1:
-				utils.remove_patch(d)
 			await asyncio.sleep(1)
+
+		utils.remove_patch(files)
 
 		return True
 

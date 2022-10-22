@@ -53,5 +53,4 @@ async def scrap_email(c: DaemonClient, m: Message):
 		await m.reply_document(f"{d}/{f}", file_name=f)
 		await asyncio.sleep(1)
 
-	if files:
-		shutil.rmtree(str(files[0][0]))
+	utils.remove_patch(files)

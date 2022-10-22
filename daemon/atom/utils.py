@@ -6,7 +6,7 @@
 
 from pyrogram.types import Chat, InlineKeyboardMarkup, InlineKeyboardButton
 from email.message import Message
-from typing import Dict
+from typing import Dict, Union
 from slugify import slugify
 import hashlib
 import uuid
@@ -238,8 +238,12 @@ def prepare_patch(mail, text, url, platform: str):
 	return tmp, file, caption, url
 
 
-def remove_patch(tmp):
-	shutil.rmtree(tmp)
+def remove_patch(tmp: Union[str, list]):
+	if isinstance(tmp, str):
+		return shutil.rmtree(tmp)
+
+	for d,_ in tmp:
+		shutil.rmtree(d)
 
 
 def fix_utf8_char(text: str, html_escape: bool = True):
