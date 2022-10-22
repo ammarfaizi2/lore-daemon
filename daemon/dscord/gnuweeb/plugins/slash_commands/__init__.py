@@ -5,9 +5,11 @@
 
 from .manage_atom import ManageAtomSC
 from .manage_broadcast import ManageBroadcastSC
+from .get_lore_mail import GetLoreSC
 
 
 class SlashCommands(
+	GetLoreSC,
 	ManageAtomSC,
 	ManageBroadcastSC
 ): pass
