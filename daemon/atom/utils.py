@@ -8,6 +8,7 @@ from pyrogram.types import Chat, InlineKeyboardMarkup, InlineKeyboardButton
 from email.message import Message
 from typing import Dict, Union
 from slugify import slugify
+from base64 import b64decode
 import hashlib
 import uuid
 import os
@@ -15,6 +16,7 @@ import re
 import shutil
 import httpx
 import html
+import quopri
 
 
 def get_email_msg_id(mail):
@@ -136,7 +138,7 @@ def gen_temp(name: str, platform: str):
 
 def extract_body(thread: Message, platform: str):
 	if not thread.is_multipart():
-		p = thread.get_payload(decode=True).decode(errors='replace')
+		p = get_decoded_payload(thread)
 
 		if platform == "discord":
 			p = quote_reply(p)
@@ -251,6 +253,20 @@ def fix_utf8_char(text: str, html_escape: bool = True):
 	if html_escape:
 		t = html.escape(html.escape(text))
 	return t
+
+
+def get_decoded_payload(payload: Message):
+	p = str(payload.get_payload())
+	tf_encode = payload.get("Content-Transfer-Encoding")
+	charset = payload.get_content_charset("utf-8")
+
+	if tf_encode == "base64":
+		return b64decode(p).decode(charset)
+	if tf_encode == "quoted-printable":
+		quobyte = quopri.decodestring(p.encode())
+		return quobyte.decode(charset)
+
+	return p.encode().decode(charset, errors="replace")
 
 
 EMAIL_MSG_ID_PATTERN = r"<([^\<\>]+)>"
