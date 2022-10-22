@@ -37,7 +37,7 @@ async def scrap_email(c: DaemonClient, m: Message):
 
 	s = Scraper()
 	mail = await s.get_email_from_url(url)
-	text, files, is_patch = utils.create_template(mail)
+	text, files, is_patch = utils.create_template(mail, "telegram")
 
 	if is_patch:
 		m = await c.send_patch_email(
