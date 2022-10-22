@@ -4,6 +4,7 @@
 #
 
 import discord
+from discord import Interaction
 from discord.ext import commands
 from discord import Intents
 from dscord.config import ACTIVITY_NAME
@@ -76,3 +77,11 @@ class GWClient(commands.Bot):
 
 		utils.remove_patch(tmp)
 		return m
+
+
+	async def send_text_mail_interaction(self, i: "Interaction",
+					text: str, url: str = None):
+		return await i.response.send_message(
+			content=text,
+			view=models.FullMessageBtn(url)
+		)
