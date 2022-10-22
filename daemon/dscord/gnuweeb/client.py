@@ -85,3 +85,17 @@ class GWClient(commands.Bot):
 			content=text,
 			view=models.FullMessageBtn(url)
 		)
+
+
+	async def send_patch_mail_interaction(self, mail, i: "Interaction",
+						text: str, url: str = None):
+		tmp, doc, caption, url = utils.prepare_patch(
+			mail, text, url, "discord"
+		)
+		m = await i.response.send_message(
+			content=caption,
+			file=discord.File(doc),
+			view=models.FullMessageBtn(url)
+		)
+		utils.remove_patch(tmp)
+		return m
