@@ -151,10 +151,13 @@ def extract_body(thread: Message, platform: str):
 		fname = p.get_filename()
 		payload = p.get_payload(decode=True)
 
+		if p.get_content_type() == "text/html":
+			continue
+
 		if not payload:
 			continue
 
-		if 'inline' in [p.get('content-disposition')] or not bool(fname):
+		if p.get_content_disposition() == 'inline' or not bool(fname):
 			ret += f"{payload.decode(errors='replace')}\n".lstrip()
 			continue
 
