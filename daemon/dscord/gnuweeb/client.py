@@ -4,6 +4,7 @@
 #
 
 import discord
+from discord import Interaction
 from discord.ext import commands
 from discord import Intents
 from dscord.config import ACTIVITY_NAME
@@ -12,6 +13,7 @@ from typing import Union
 from . import filters
 from . import models
 from atom import utils
+from enums import Platform
 from dscord.database import DB
 
 
@@ -58,7 +60,7 @@ class GWClient(commands.Bot):
 				reply_to: Union[int, None] = None, url: str = None):
 		print("[send_patch_email]")
 		tmp, doc, caption, url = utils.prepare_patch(
-			mail, text, url, "discord"
+			mail, text, url, Platform.DISCORD
 		)
 		channel = self.get_channel(chat_id)
 
@@ -74,5 +76,27 @@ class GWClient(commands.Bot):
 			view=models.FullMessageBtn(url)
 		)
 
+		utils.remove_patch(tmp)
+		return m
+
+
+	async def send_text_mail_interaction(self, i: "Interaction",
+					text: str, url: str = None):
+		return await i.response.send_message(
+			content=text,
+			view=models.FullMessageBtn(url)
+		)
+
+
+	async def send_patch_mail_interaction(self, mail, i: "Interaction",
+						text: str, url: str = None):
+		tmp, doc, caption, url = utils.prepare_patch(
+			mail, text, url, Platform.DISCORD
+		)
+		m = await i.response.send_message(
+			content=caption,
+			file=discord.File(doc),
+			view=models.FullMessageBtn(url)
+		)
 		utils.remove_patch(tmp)
 		return m

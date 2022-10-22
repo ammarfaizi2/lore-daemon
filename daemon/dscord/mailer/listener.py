@@ -14,6 +14,7 @@ from discord import Message
 from dscord.gnuweeb import GWClient
 from atom.scraper import Scraper
 from atom import utils
+from enums import Platform
 
 
 class Mutexes:
@@ -107,7 +108,7 @@ class Listener:
 			#
 			return False
 
-		text, files, is_patch = utils.create_template(mail, "discord")
+		text, files, is_patch = utils.create_template(mail, Platform.DISCORD)
 		reply_to = self.get_discord_reply(mail, dc_chat_id)
 		url = str(re.sub(r"/raw$", "", url))
 
@@ -125,9 +126,9 @@ class Listener:
 
 		for d, f in files:
 			await m.reply(file=File(f"{d}/{f}"))
-			if files.index((d,f)) == len(files)-1:
-				utils.remove_patch(d)
 			await asyncio.sleep(1)
+
+		utils.remove_patch(files)
 
 		return True
 

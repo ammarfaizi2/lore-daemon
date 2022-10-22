@@ -9,8 +9,8 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from telegram.packages import DaemonClient
 from atom import Scraper
 from atom import utils
+from enums import Platform
 import asyncio
-import shutil
 import re
 import traceback
 
@@ -99,7 +99,7 @@ class Bot():
 			#
 			return False
 
-		text, files, is_patch = utils.create_template(mail, "telegram")
+		text, files, is_patch = utils.create_template(mail, Platform.TELEGRAM)
 		reply_to = self.get_reply(mail, tg_chat_id)
 		url = str(re.sub(r"/raw$", "", url))
 
@@ -118,8 +118,7 @@ class Bot():
 			await m.reply_document(f"{d}/{f}", file_name=f)
 			await asyncio.sleep(1)
 
-		if files:
-			shutil.rmtree(str(files[0][0]))
+		utils.remove_patch(files)
 
 		return True
 

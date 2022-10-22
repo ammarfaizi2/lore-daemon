@@ -4,10 +4,13 @@
 # Copyright (C) 2022  Ammar Faizi <ammarfaizi2@gnuweeb.org>
 #
 
+from enums import Platform
+
 from pyrogram.types import Chat, InlineKeyboardMarkup, InlineKeyboardButton
 from email.message import Message
-from typing import Dict
+from typing import Dict, Union
 from slugify import slugify
+from base64 import b64decode
 import hashlib
 import uuid
 import os
@@ -15,6 +18,7 @@ import re
 import shutil
 import httpx
 import html
+import quopri
 
 
 def get_email_msg_id(mail):
@@ -113,19 +117,13 @@ def consruct_to_n_cc(to: list, cc: list):
 	return ret
 
 
-def gen_temp(name: str, platform: str):
-	platform = platform.lower()
-	plt_ls = ["telegram", "discord"]
-
-	if platform not in plt_ls:
-		t = f"Platform {platform} is not found, "
-		t += f"only {', '.join(plt_ls)} is available"
-		raise ValueError(f"Platform {platform} is not found")
-
+def gen_temp(name: str, platform: Platform):
+	platform: str = platform.value
 	md5 = hashlib.md5(name.encode()).hexdigest()
 	store_dir = os.getenv("STORAGE_DIR", "storage")
 	platform = platform.replace("discord", "dscord")
 	path = f"{platform}/{store_dir}/{md5}"
+
 	try:
 		os.mkdir(path)
 	except FileExistsError:
@@ -134,11 +132,11 @@ def gen_temp(name: str, platform: str):
 	return path
 
 
-def extract_body(thread: Message, platform: str):
+def extract_body(thread: Message, platform: Platform):
 	if not thread.is_multipart():
-		p = thread.get_payload(decode=True).decode(errors='replace')
+		p = get_decoded_payload(thread)
 
-		if platform == "discord":
+		if platform is Platform.DISCORD:
 			p = quote_reply(p)
 
 		return f"{p}\n".lstrip(), []
@@ -149,10 +147,13 @@ def extract_body(thread: Message, platform: str):
 		fname = p.get_filename()
 		payload = p.get_payload(decode=True)
 
+		if p.get_content_type() == "text/html":
+			continue
+
 		if not payload:
 			continue
 
-		if 'inline' in [p.get('content-disposition')] or not bool(fname):
+		if p.get_content_disposition() == 'inline' or not bool(fname):
 			ret += f"{payload.decode(errors='replace')}\n".lstrip()
 			continue
 
@@ -178,12 +179,12 @@ def __is_patch(subject, content):
 	return True
 
 
-def create_template(thread: Message, platform: str, to=None, cc=None):
+def create_template(thread: Message, platform: Platform, to=None, cc=None):
 	if not to:
 		to = extract_list("to", thread)
 	if not cc:
 		cc = extract_list("cc", thread)
-	if platform == "telegram":
+	if platform is Platform.TELEGRAM:
 		substr = 4000
 		border = f"\n<code>{'-'*72}</code>"
 	else:
@@ -206,13 +207,13 @@ def create_template(thread: Message, platform: str, to=None, cc=None):
 		if len(ret) >= substr:
 			ret = ret[:substr] + "..."
 
-		ret = fix_utf8_char(ret, platform == "telegram")
+		ret = fix_utf8_char(ret, platform is Platform.TELEGRAM)
 		ret += border
 
 	return ret, files, is_patch
 
 
-def prepare_patch(mail, text, url, platform: str):
+def prepare_patch(mail, text, url, platform: Platform):
 	tmp = gen_temp(url, platform)
 	fnm = str(mail.get("subject"))
 	sch = re.search(PATCH_PATTERN, fnm, re.IGNORECASE)
@@ -232,14 +233,18 @@ def prepare_patch(mail, text, url, platform: str):
 		f.write(bytes(text, encoding="utf8"))
 
 	caption = "#patch #ml"
-	if platform == "telegram":
+	if platform is Platform.TELEGRAM:
 		caption += fix_utf8_char("\n" + cap, True)
 
 	return tmp, file, caption, url
 
 
-def remove_patch(tmp):
-	shutil.rmtree(tmp)
+def remove_patch(tmp: Union[str, list]):
+	if isinstance(tmp, str):
+		return shutil.rmtree(tmp)
+
+	for d,_ in tmp:
+		shutil.rmtree(d)
 
 
 def fix_utf8_char(text: str, html_escape: bool = True):
@@ -247,6 +252,20 @@ def fix_utf8_char(text: str, html_escape: bool = True):
 	if html_escape:
 		t = html.escape(html.escape(text))
 	return t
+
+
+def get_decoded_payload(payload: Message):
+	p = str(payload.get_payload())
+	tf_encode = payload.get("Content-Transfer-Encoding")
+	charset = payload.get_content_charset("utf-8")
+
+	if tf_encode == "base64":
+		return b64decode(p).decode(charset)
+	if tf_encode == "quoted-printable":
+		quobyte = quopri.decodestring(p.encode())
+		return quobyte.decode(charset)
+
+	return p.encode().decode(charset, errors="replace")
 
 
 EMAIL_MSG_ID_PATTERN = r"<([^\<\>]+)>"
