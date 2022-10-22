@@ -13,6 +13,7 @@ from typing import Union
 from . import filters
 from . import models
 from atom import utils
+from enums import Platform
 from dscord.database import DB
 
 
@@ -59,7 +60,7 @@ class GWClient(commands.Bot):
 				reply_to: Union[int, None] = None, url: str = None):
 		print("[send_patch_email]")
 		tmp, doc, caption, url = utils.prepare_patch(
-			mail, text, url, "discord"
+			mail, text, url, Platform.DISCORD
 		)
 		channel = self.get_channel(chat_id)
 
@@ -90,7 +91,7 @@ class GWClient(commands.Bot):
 	async def send_patch_mail_interaction(self, mail, i: "Interaction",
 						text: str, url: str = None):
 		tmp, doc, caption, url = utils.prepare_patch(
-			mail, text, url, "discord"
+			mail, text, url, Platform.DISCORD
 		)
 		m = await i.response.send_message(
 			content=caption,

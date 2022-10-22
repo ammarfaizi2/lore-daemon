@@ -9,8 +9,8 @@ from pyrogram import filters
 from telegram.packages import DaemonClient
 from atom import Scraper
 from atom import utils
+from enums import Platform
 from telegram import config
-import shutil
 import re
 import asyncio
 
@@ -37,7 +37,7 @@ async def scrap_email(c: DaemonClient, m: Message):
 
 	s = Scraper()
 	mail = await s.get_email_from_url(url)
-	text, files, is_patch = utils.create_template(mail, "telegram")
+	text, files, is_patch = utils.create_template(mail, Platform.TELEGRAM)
 
 	if is_patch:
 		m = await c.send_patch_email(

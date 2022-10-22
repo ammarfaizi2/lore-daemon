@@ -9,6 +9,7 @@ from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from typing import Union
 from email.message import Message
 from atom import utils
+from enums import Platform
 from telegram.database import DB
 from .decorator import handle_flood
 
@@ -57,7 +58,7 @@ class DaemonClient(Client):
 	) -> Message:
 		print("[send_patch_email]")
 		tmp, doc, caption, url = utils.prepare_patch(
-			mail, text, url, "telegram"
+			mail, text, url, Platform.TELEGRAM
 		)
 		m = await self.send_document(
 			chat_id=chat_id,

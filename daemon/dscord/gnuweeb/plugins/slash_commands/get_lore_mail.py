@@ -11,6 +11,7 @@ from discord import app_commands
 
 from atom import utils
 from atom import Scraper
+from enums import Platform
 
 
 class GetLoreSC(commands.Cog):
@@ -26,7 +27,7 @@ class GetLoreSC(commands.Cog):
 	async def get_lore(self, i: "Interaction", url: str):
 		s = Scraper()
 		mail = await s.get_email_from_url(url)
-		text, _, is_patch = utils.create_template(mail, "discord")
+		text, _, is_patch = utils.create_template(mail, Platform.DISCORD)
 
 		if is_patch:
 			m = await self.bot.send_patch_mail_interaction(
