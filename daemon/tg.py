@@ -6,11 +6,11 @@
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
-from mysql import connector
 from atom import Scraper
 from telegram.packages import DaemonClient
 from telegram.mailer import BotMutexes
 from telegram.mailer import Bot
+from telegram.database import DB
 import os
 
 
@@ -22,7 +22,7 @@ def main():
 		api_id=int(os.getenv("API_ID")),
 		api_hash=os.getenv("API_HASH"),
 		bot_token=os.getenv("BOT_TOKEN"),
-		conn=connector.connect(
+		db=DB(
 			host=os.getenv("DB_HOST"),
 			user=os.getenv("DB_USER"),
 			password=os.getenv("DB_PASS"),

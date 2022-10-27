@@ -15,11 +15,11 @@ from .decorator import handle_flood
 
 
 class DaemonClient(Client):
-	def __init__(self, name: str, api_id: int,
-		api_hash: str, conn, **kwargs):
+	def __init__(self, name: str, api_id: int, api_hash: str, db: DB,
+		     **kwargs):
 		super().__init__(name, api_id,
-				api_hash, **kwargs)
-		self.db = DB(conn)
+				 api_hash, **kwargs)
+		self.db = db
 
 
 	@handle_flood
