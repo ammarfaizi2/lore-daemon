@@ -5,6 +5,7 @@
 #
 
 from pyrogram.types import Message
+from mysql.connector.errors import OperationalError, DatabaseError
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from telegram.packages import DaemonClient
 from atom import Scraper
@@ -43,13 +44,33 @@ class Bot():
 		)
 
 
+	async def handle_db_error(self, e):
+		#
+		# TODO(ammarfaizi2):
+		# Ideally, we also want to log and report this situation.
+		#
+		print(f"Database error: {str(e)}")
+		print("Reconnecting to the database...")
+
+		#
+		# Don't do this too often to avoid reconnect burst.
+		#
+		delay_in_secs = 3
+		reconnect_attempts = 3
+
+		self.db.ping(reconnect=True, attempts=reconnect_attempts,
+			     delay=delay_in_secs)
+
+
 	async def __run(self):
 		print("[__run]: Running...")
-		for url in self.db.get_atom_urls():
-			try:
+		try:
+			for url in self.db.get_atom_urls():
 				await self.__handle_atom_url(url)
-			except:
-				print(traceback.format_exc())
+		except (OperationalError, DatabaseError) as e:
+			await self.handle_db_error(e)
+		except:
+			print(traceback.format_exc())
 
 		if not self.isRunnerFixed:
 			self.isRunnerFixed = True
