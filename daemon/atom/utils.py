@@ -213,7 +213,7 @@ def create_template(thread: Message, platform: Platform, to=None, cc=None):
 	return ret, files, is_patch
 
 
-def prepare_patch(mail, text, url, platform: Platform):
+def prepare_patch(mail: Message, text, url, platform: Platform):
 	tmp = gen_temp(url, platform)
 	fnm = str(mail.get("subject"))
 	sch = re.search(PATCH_PATTERN, fnm, re.IGNORECASE)
@@ -230,7 +230,23 @@ def prepare_patch(mail, text, url, platform: Platform):
 	cap = text.split("\n\n")[0]
 
 	with open(file, "wb") as f:
-		f.write(bytes(text, encoding="utf8"))
+		write_payload = bytes(f"{cap}\n\n".encode())
+
+		# sometimes an email PATCH is a multipart
+		# so, we must loop the payload first
+		# then, check if each payload is a PATCH payload
+		# or no, if it's a PATCH payload then write payload
+		# to the file.
+		if mail.is_multipart():
+			for m in mail.get_payload():
+				subject = mail.get("subject")
+				if not __is_patch(subject, str(m)):
+					continue
+				write_payload += m.get_payload(decode=True)
+		else:
+			write_payload += mail.get_payload(decode=True)
+
+		f.write(write_payload)
 
 	caption = "#patch #ml"
 	if platform is Platform.TELEGRAM:
