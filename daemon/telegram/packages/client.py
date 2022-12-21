@@ -10,16 +10,20 @@ from typing import Union
 from email.message import Message
 from atom import utils
 from enums import Platform
+from logger import BotLogger
 from telegram.database import DB
 from .decorator import handle_flood
 
 
 class DaemonClient(Client):
 	def __init__(self, name: str, api_id: int,
-		api_hash: str, conn, **kwargs):
+		api_hash: str, conn, logger: BotLogger,
+		**kwargs
+	):
 		super().__init__(name, api_id,
 				api_hash, **kwargs)
 		self.db = DB(conn)
+		self.logger = logger
 
 
 	@handle_flood
