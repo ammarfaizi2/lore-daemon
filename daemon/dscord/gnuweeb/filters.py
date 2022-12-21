@@ -49,5 +49,5 @@ def wait_on_limit(func):
 
 async def _flood_exceptions(e: "discord.errors.RateLimited"):
 	wait = e.retry_after
-	print(f"[wait_on_limit]: Sleeping for {wait} seconds due to Telegram limit")
+	print(f"[wait_on_limit]: Sleeping for {wait} seconds due to Discord limit")
 	await asyncio.sleep(wait)
