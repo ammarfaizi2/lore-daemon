@@ -248,9 +248,20 @@ def prepare_patch(mail: Message, text, url, platform: Platform):
 
 		f.write(write_payload)
 
-	caption = "#patch #ml"
+	caption = f"#patch #ml\n{cap}"
 	if platform is Platform.TELEGRAM:
-		caption += fix_utf8_char("\n" + cap, True)
+		# Telegram media caption is limit to 1024
+		# set limit to 1021, because we will add "..."
+		if len(caption) >= 1024:
+			caption = caption[:1021] + "..."
+
+		fixed = fix_utf8_char(caption, html_escape=True)
+		return tmp, file, fixed, url
+
+	# Discord attachment caption limit about 1998 or 2000
+	# set limit to 1995, because we will add "..."
+	if len(caption) >= 1998:
+		caption = caption[:1995] + "..."
 
 	return tmp, file, caption, url
 
