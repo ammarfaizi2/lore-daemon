@@ -280,7 +280,7 @@ def remove_patch(tmp: Union[str, list]):
 def fix_utf8_char(text: str, html_escape: bool = True):
 	t = text.rstrip().replace("�"," ")
 	if html_escape:
-		t = html.escape(html.escape(text))
+		return html.escape(t)
 	return t
 
 
