@@ -10,7 +10,7 @@ from pyrogram.types import Chat, InlineKeyboardMarkup, InlineKeyboardButton
 from email.message import Message
 from typing import Dict, Union
 from slugify import slugify
-from base64 import b64decode
+import traceback
 import hashlib
 import uuid
 import os
@@ -289,11 +289,9 @@ def get_decoded_payload(payload: Message):
 	tf_encode = payload.get("Content-Transfer-Encoding")
 	charset = payload.get_content_charset("utf-8")
 
-	if tf_encode == "base64":
-		return b64decode(p).decode(charset)
-	if tf_encode == "quoted-printable":
-		quobyte = quopri.decodestring(p.encode())
-		return quobyte.decode(charset)
+	if tf_encode in ["base64", "quoted-printable", "binary"]:
+		return payload.get_payload(decode=True) \
+			.decode(errors="replace")
 
 	return p.encode().decode(charset, errors="replace")
 
