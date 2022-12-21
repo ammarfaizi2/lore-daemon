@@ -46,7 +46,7 @@ class DaemonClient(Client):
 		url: str = None,
 		parse_mode: ParseMode = ParseMode.HTML
 	) -> Message:
-		print("[send_text_email]")
+		self.logger.debug("[send_text_email]")
 		return await self.send_message(
 			chat_id=chat_id,
 			text=text,
@@ -71,7 +71,7 @@ class DaemonClient(Client):
 		url: str = None,
 		parse_mode: ParseMode = ParseMode.HTML
 	) -> Message:
-		print("[send_patch_email]")
+		self.logger.debug("[send_patch_email]")
 		tmp, doc, caption, url = utils.prepare_patch(
 			mail, text, url, Platform.TELEGRAM
 		)

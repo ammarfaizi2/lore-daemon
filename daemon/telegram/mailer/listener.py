@@ -13,7 +13,6 @@ from atom import utils
 from enums import Platform
 import asyncio
 import re
-import traceback
 
 
 class BotMutexes():
@@ -29,6 +28,7 @@ class Bot():
 		self.scraper = scraper
 		self.mutexes = mutexes
 		self.db = client.db
+		self.logger = client.logger
 		self.isRunnerFixed = False
 
 
@@ -49,8 +49,8 @@ class Bot():
 		# TODO(ammarfaizi2):
 		# Ideally, we also want to log and report this situation.
 		#
-		print(f"Database error: {str(e)}")
-		print("Reconnecting to the database...")
+		self.logger.error(f"Database error: {str(e)}")
+		self.logger.info("Reconnecting to the database...")
 
 		#
 		# Don't do this too often to avoid reconnect burst.
@@ -63,14 +63,17 @@ class Bot():
 
 
 	async def __run(self):
-		print("[__run]: Running...")
+		self.logger.info("Running...")
 		try:
 			for url in self.db.get_atom_urls():
 				await self.__handle_atom_url(url)
 		except (OperationalError, DatabaseError) as e:
 			await self.handle_db_error(e)
 		except:
-			print(traceback.format_exc())
+			exc_str = utils.catch_err()
+			self.logger.warning(exc_str)
+			capt = "Unkown raw lore URL, see full details in the log file."
+			await self.client.send_log_file(capt)
 
 		if not self.isRunnerFixed:
 			self.isRunnerFixed = True
@@ -86,8 +89,13 @@ class Bot():
 	async def __handle_atom_url(self, url):
 		urls = await self.scraper.get_new_threads_urls(url)
 		for url in urls:
-			mail = await self.scraper.get_email_from_url(url)
-			await self.__handle_mail(url, mail)
+			try:
+				mail = await self.scraper.get_email_from_url(url)
+				await self.__handle_mail(url, mail)
+			except:
+				exc_str = utils.catch_err()
+				self.logger.warning(exc_str)
+				await self.client.send_log_file(url)
 
 
 	async def __handle_mail(self, url, mail):
@@ -104,23 +112,27 @@ class Bot():
 	# @__must_hold(self.mutexes.send_to_tg)
 	async def __send_mail(self, url, mail, tg_chat_id):
 		email_msg_id = utils.get_email_msg_id(mail)
+
 		if not email_msg_id:
-			#
-			# It doesn't have a Message-Id.
-			# A malformed email. Skip!
-			#
+			md = "email_msg_id not detected, skipping malformed email"
+			self.logger.debug(md)
 			return False
 
 		email_id = self.__mail_id_from_db(email_msg_id,
 							tg_chat_id)
 		if not email_id:
-			#
-			# Email has already been sent to Telegram.
-			# Skip!
-			#
+			md = f"Skipping {email_id} because has already been sent to Telegram"
+			self.logger.debug(md)
 			return False
 
-		text, files, is_patch = utils.create_template(mail, Platform.TELEGRAM)
+		try:
+			text, files, is_patch = utils.create_template(mail, Platform.TELEGRAM)
+		except:
+			exc_str = utils.catch_err()
+			self.logger.warning(exc_str)
+			await self.client.send_log_file(url)
+			return
+
 		reply_to = self.get_reply(mail, tg_chat_id)
 		url = str(re.sub(r"/raw$", "", url))
 
