@@ -5,7 +5,6 @@
 #
 
 import asyncio
-import traceback
 import re
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from discord import File

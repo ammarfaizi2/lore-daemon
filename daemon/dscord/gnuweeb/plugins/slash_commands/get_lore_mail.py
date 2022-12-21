@@ -3,8 +3,6 @@
 # Copyright (C) 2022  Muhammad Rizki <kiizuha@gnuweeb.org>
 #
 
-import asyncio
-import discord
 from discord.ext import commands
 from discord import Interaction
 from discord import app_commands

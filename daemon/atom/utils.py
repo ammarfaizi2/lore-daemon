@@ -8,7 +8,7 @@ from enums import Platform
 
 from pyrogram.types import Chat, InlineKeyboardMarkup, InlineKeyboardButton
 from email.message import Message
-from typing import Dict, Union
+from typing import Union
 from slugify import slugify
 import traceback
 import hashlib
@@ -18,7 +18,6 @@ import re
 import shutil
 import httpx
 import html
-import quopri
 
 
 def get_email_msg_id(mail):
