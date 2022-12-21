@@ -296,6 +296,12 @@ def get_decoded_payload(payload: Message):
 	return p.encode().decode(charset, errors="replace")
 
 
+def catch_err():
+	return traceback.format_exc() \
+	.encode("unicode_escape") \
+	.decode("utf-8")
+
+
 EMAIL_MSG_ID_PATTERN = r"<([^\<\>]+)>"
 def extract_email_msg_id(msg_id):
 	ret = re.search(EMAIL_MSG_ID_PATTERN, msg_id)
