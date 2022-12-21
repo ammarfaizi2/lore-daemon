@@ -11,6 +11,7 @@ from email.message import Message
 from atom import utils
 from enums import Platform
 from logger import BotLogger
+from telegram import config
 from telegram.database import DB
 from .decorator import handle_flood
 
@@ -24,6 +25,16 @@ class DaemonClient(Client):
 				api_hash, **kwargs)
 		self.db = DB(conn)
 		self.logger = logger
+
+
+	@handle_flood
+	async def send_log_file(self, caption: str):
+		filename = self.logger.handlers[0].baseFilename
+		await self.send_document(
+			config.LOG_CHANNEL_ID,
+			filename,
+			caption=caption
+		)
 
 
 	@handle_flood
