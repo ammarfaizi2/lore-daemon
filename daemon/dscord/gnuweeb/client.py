@@ -7,22 +7,24 @@ import discord
 from discord import Interaction
 from discord.ext import commands
 from discord import Intents
-from dscord.config import ACTIVITY_NAME
 from typing import Union
 
 from . import filters
 from . import models
 from atom import utils
 from enums import Platform
+from logger.log import BotLogger
+from dscord.config import ACTIVITY_NAME
 from dscord.database import DB
 
 
 class GWClient(commands.Bot):
-	def __init__(self, db_conn) -> None:
+	def __init__(self, db_conn, logger: BotLogger) -> None:
 		self.db = DB(db_conn)
 		intents = Intents.default()
 		intents.message_content = True
 		self.mailer = None
+		self.logger = logger
 		super().__init__(
 			command_prefix=["$", "."],
 			description="Just a bot for receiving lore emails.",
