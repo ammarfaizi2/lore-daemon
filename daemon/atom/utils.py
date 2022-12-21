@@ -86,9 +86,12 @@ def __extract_list(ss):
 	return ret
 
 
-def extract_list(key: str, content: Dict[str, str]):
-	people = content.get(key.lower())
-	if not people:
+def extract_list(key: str, thread: Message):
+	try:
+		people = thread.get(key.lower())
+		if not people:
+			return []
+	except:
 		return []
 	return __extract_list(people)
 
