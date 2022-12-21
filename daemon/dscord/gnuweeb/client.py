@@ -14,7 +14,7 @@ from . import models
 from atom import utils
 from enums import Platform
 from logger.log import BotLogger
-from dscord.config import ACTIVITY_NAME
+from dscord.config import ACTIVITY_NAME, LOG_CHANNEL_ID
 from dscord.database import DB
 
 
@@ -37,6 +37,16 @@ class GWClient(commands.Bot):
 		await self.load_extension(
 			name=".gnuweeb.plugins",
 			package="dscord"
+		)
+
+
+	@filters.wait_on_limit
+	async def send_log_file(self, caption: str):
+		filename = self.logger.handlers[0].baseFilename
+		channel = self.get_channel(LOG_CHANNEL_ID)
+		await channel.send(
+			content=caption,
+			file=discord.File(filename)
 		)
 
 
