@@ -15,6 +15,7 @@ from discord import Interaction
 
 # gnuweeb package import
 from dscord import config
+from logger import BotLogger
 
 
 def lore_admin(func):
@@ -42,12 +43,15 @@ def wait_on_limit(func):
 			try:
 				return await func(*args)
 			except discord.errors.RateLimited as e:
+				# Calling logger attr from the GWClient() class
+				logger = args[0].logger
+
 				_flood_exceptions(e)
-				print("[wait_on_limit]: Woken up from flood wait...")
+				logger.info("Woken up from flood wait...")
 	return callback
 
 
-async def _flood_exceptions(e: "discord.errors.RateLimited"):
+async def _flood_exceptions(e: "discord.errors.RateLimited", logger: BotLogger):
 	wait = e.retry_after
-	print(f"[wait_on_limit]: Sleeping for {wait} seconds due to Discord limit")
+	logger.info(f"Sleeping for {wait} seconds due to Discord limit")
 	await asyncio.sleep(wait)

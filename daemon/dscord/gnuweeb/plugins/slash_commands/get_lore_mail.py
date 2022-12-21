@@ -26,8 +26,14 @@ class GetLoreSC(commands.Cog):
 	@app_commands.describe(url="Raw lore email URL")
 	async def get_lore(self, i: "Interaction", url: str):
 		s = Scraper()
-		mail = await s.get_email_from_url(url)
-		text, _, is_patch = utils.create_template(mail, Platform.DISCORD)
+
+		try:
+			mail = await s.get_email_from_url(url)
+			text, _, is_patch = utils.create_template(mail, Platform.DISCORD)
+		except:
+			exc_str = utils.catch_err()
+			self.bot.logger.warning(exc_str)
+			await self.bot.send_log_file(url)
 
 		if is_patch:
 			m = await self.bot.send_patch_mail_interaction(

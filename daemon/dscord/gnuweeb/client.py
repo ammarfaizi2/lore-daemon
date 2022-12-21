@@ -53,7 +53,7 @@ class GWClient(commands.Bot):
 	@filters.wait_on_limit
 	async def send_text_email(self, guild_id: int, chat_id: int, text: str,
 				reply_to: Union[int, None] = None, url: str = None):
-		print("[send_text_email]")
+		self.logger.debug("[send_text_email]")
 		channel = self.get_channel(chat_id)
 
 		return await channel.send(
@@ -70,7 +70,7 @@ class GWClient(commands.Bot):
 	@filters.wait_on_limit
 	async def send_patch_email(self, mail, guild_id: int, chat_id: int, text: str,
 				reply_to: Union[int, None] = None, url: str = None):
-		print("[send_patch_email]")
+		self.logger.debug("[send_patch_email]")
 		tmp, doc, caption, url = utils.prepare_patch(
 			mail, text, url, Platform.DISCORD
 		)

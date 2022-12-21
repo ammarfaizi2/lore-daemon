@@ -23,4 +23,4 @@ class OnReady(commands.Cog):
 		t += f"Send `{prefix}sync` message to the Discord channel "
 		t += "where the bot is running.\n"
 
-		print(t)
+		self.bot.logger.info(t)

@@ -35,6 +35,7 @@ class Listener:
 		self.scraper = scraper
 		self.mutexes = mutexes
 		self.db = client.db
+		self.logger = client.logger
 		self.isRunnerFixed = False
 		self.runner = None
 
@@ -44,18 +45,15 @@ class Listener:
 		# Execute __run() once to avoid high latency at
 		# initilization.
 		#
-		print("Initialize listener...\n")
+		self.logger.info("Initialize listener...\n")
 		self.sched.start()
 		self.runner = self.sched.add_job(func=self.__run)
 
 
 	async def __run(self):
-		print("[__run]: Running...")
+		self.logger.info("Running...")
 		for url in self.db.get_atom_urls():
-			try:
-				await self.__handle_atom_url(url)
-			except:
-				print(traceback.format_exc())
+			await self.__handle_atom_url(url)
 
 		if not self.isRunnerFixed:
 			self.isRunnerFixed = True
@@ -71,8 +69,13 @@ class Listener:
 	async def __handle_atom_url(self, url):
 		urls = await self.scraper.get_new_threads_urls(url)
 		for url in urls:
-			mail = await self.scraper.get_email_from_url(url)
-			await self.__handle_mail(url, mail)
+			try:
+				mail = await self.scraper.get_email_from_url(url)
+				await self.__handle_mail(url, mail)
+			except:
+				exc_str = utils.catch_err()
+				self.client.logger.warning(exc_str)
+				await self.client.send_log_file(url)
 
 
 	async def __handle_mail(self, url, mail):
@@ -91,10 +94,8 @@ class Listener:
 	async def __send_to_discord(self, url, mail, dc_guild_id, dc_chat_id):
 		email_msg_id = utils.get_email_msg_id(mail)
 		if not email_msg_id:
-			#
-			# It doesn't have a Message-Id.
-			# A malformed email. Skip!
-			#
+			md = "email_msg_id not detected, skipping malformed email"
+			self.logger.debug(md)
 			return False
 
 		email_id = self.__get_email_id_sent(
@@ -102,13 +103,18 @@ class Listener:
 			dc_chat_id=dc_chat_id
 		)
 		if not email_id:
-			#
-			# Email has already been sent to Discord.
-			# Skip!
-			#
+			md = f"Skipping {email_id} because has already been sent to Discord"
+			self.logger.debug(md)
 			return False
 
-		text, files, is_patch = utils.create_template(mail, Platform.DISCORD)
+		try:
+			text, files, is_patch = utils.create_template(mail, Platform.DISCORD)
+		except:
+			exc_str = utils.catch_err()
+			self.client.logger.warning(exc_str)
+			await self.client.send_log_file(url)
+			return
+
 		reply_to = self.get_discord_reply(mail, dc_chat_id)
 		url = str(re.sub(r"/raw$", "", url))
 
