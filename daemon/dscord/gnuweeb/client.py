@@ -7,22 +7,24 @@ import discord
 from discord import Interaction
 from discord.ext import commands
 from discord import Intents
-from dscord.config import ACTIVITY_NAME
 from typing import Union
 
 from . import filters
 from . import models
 from atom import utils
 from enums import Platform
+from logger.log import BotLogger
+from dscord.config import ACTIVITY_NAME, LOG_CHANNEL_ID
 from dscord.database import DB
 
 
 class GWClient(commands.Bot):
-	def __init__(self, db_conn) -> None:
+	def __init__(self, db_conn, logger: BotLogger) -> None:
 		self.db = DB(db_conn)
 		intents = Intents.default()
 		intents.message_content = True
 		self.mailer = None
+		self.logger = logger
 		super().__init__(
 			command_prefix=["$", "."],
 			description="Just a bot for receiving lore emails.",
@@ -39,9 +41,19 @@ class GWClient(commands.Bot):
 
 
 	@filters.wait_on_limit
+	async def send_log_file(self, caption: str):
+		filename = self.logger.handlers[0].baseFilename
+		channel = self.get_channel(LOG_CHANNEL_ID)
+		await channel.send(
+			content=caption,
+			file=discord.File(filename)
+		)
+
+
+	@filters.wait_on_limit
 	async def send_text_email(self, guild_id: int, chat_id: int, text: str,
 				reply_to: Union[int, None] = None, url: str = None):
-		print("[send_text_email]")
+		self.logger.debug("[send_text_email]")
 		channel = self.get_channel(chat_id)
 
 		return await channel.send(
@@ -58,7 +70,7 @@ class GWClient(commands.Bot):
 	@filters.wait_on_limit
 	async def send_patch_email(self, mail, guild_id: int, chat_id: int, text: str,
 				reply_to: Union[int, None] = None, url: str = None):
-		print("[send_patch_email]")
+		self.logger.debug("[send_patch_email]")
 		tmp, doc, caption, url = utils.prepare_patch(
 			mail, text, url, Platform.DISCORD
 		)

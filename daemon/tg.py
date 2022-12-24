@@ -11,17 +11,22 @@ from atom import Scraper
 from telegram.packages import DaemonClient
 from telegram.mailer import BotMutexes
 from telegram.mailer import Bot
+from logger import BotLogger
 import os
 
 
 def main():
 	load_dotenv("telegram.env")
 
+	logger = BotLogger()
+	logger.init()
+
 	client = DaemonClient(
 		"telegram/storage/EmailScraper",
 		api_id=int(os.getenv("API_ID")),
 		api_hash=os.getenv("API_HASH"),
 		bot_token=os.getenv("BOT_TOKEN"),
+		logger=logger,
 		conn=connector.connect(
 			host=os.getenv("DB_HOST"),
 			user=os.getenv("DB_USER"),

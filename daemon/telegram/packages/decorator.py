@@ -24,20 +24,19 @@ def handle_flood(func: Callable[[T], T]) -> Callable[[T], T]:
 			try:
 				return await func(*args)
 			except FloodWait as e:
-				#
-				# Aiee... we hit our limit.
-				# Let's slow down a bit.
-				#
-				_flood_exceptions(e)
-				print("[__handle_telegram_floodwait]: Woken up from flood wait...")
+				# Calling logger attr from the DaemonClient() class
+				logger = args[0].logger
+
+				_flood_exceptions(e, logger)
+				logger.info("Woken up from flood wait...")
 	return callback
 
 
-async def _flood_exceptions(e):
+async def _flood_exceptions(e, logger):
 	x = re.search(r"A wait of (\d+) seconds is required", str(e))
 	if not x:
 		raise e
 
 	n = int(x.group(1))
-	print(f"[____handle_telegram_floodwait]: Sleeping for {n} seconds due to Telegram limit")
+	logger.info(f"Sleeping for {n} seconds due to Telegram limit")
 	await asyncio.sleep(n)

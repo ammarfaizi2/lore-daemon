@@ -11,3 +11,7 @@ ADMIN_ROLE_ID =
 # The activity name like "Playing Genshin Impact"
 # you set the value as "Genshin Impact"
 ACTIVITY_NAME =
+
+# Insert Discord channel ID to send the log file
+# type (int)
+LOG_CHANNEL_ID =

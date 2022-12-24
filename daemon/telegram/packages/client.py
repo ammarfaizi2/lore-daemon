@@ -10,16 +10,31 @@ from typing import Union
 from email.message import Message
 from atom import utils
 from enums import Platform
+from logger import BotLogger
+from telegram import config
 from telegram.database import DB
 from .decorator import handle_flood
 
 
 class DaemonClient(Client):
 	def __init__(self, name: str, api_id: int,
-		api_hash: str, conn, **kwargs):
+		api_hash: str, conn, logger: BotLogger,
+		**kwargs
+	):
 		super().__init__(name, api_id,
 				api_hash, **kwargs)
 		self.db = DB(conn)
+		self.logger = logger
+
+
+	@handle_flood
+	async def send_log_file(self, caption: str):
+		filename = self.logger.handlers[0].baseFilename
+		await self.send_document(
+			config.LOG_CHANNEL_ID,
+			filename,
+			caption=caption
+		)
 
 
 	@handle_flood
@@ -31,7 +46,7 @@ class DaemonClient(Client):
 		url: str = None,
 		parse_mode: ParseMode = ParseMode.HTML
 	) -> Message:
-		print("[send_text_email]")
+		self.logger.debug("[send_text_email]")
 		return await self.send_message(
 			chat_id=chat_id,
 			text=text,
@@ -56,7 +71,7 @@ class DaemonClient(Client):
 		url: str = None,
 		parse_mode: ParseMode = ParseMode.HTML
 	) -> Message:
-		print("[send_patch_email]")
+		self.logger.debug("[send_patch_email]")
 		tmp, doc, caption, url = utils.prepare_patch(
 			mail, text, url, Platform.TELEGRAM
 		)

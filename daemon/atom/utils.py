@@ -8,9 +8,9 @@ from enums import Platform
 
 from pyrogram.types import Chat, InlineKeyboardMarkup, InlineKeyboardButton
 from email.message import Message
-from typing import Dict, Union
+from typing import Union
 from slugify import slugify
-from base64 import b64decode
+import traceback
 import hashlib
 import uuid
 import os
@@ -18,7 +18,6 @@ import re
 import shutil
 import httpx
 import html
-import quopri
 
 
 def get_email_msg_id(mail):
@@ -86,9 +85,12 @@ def __extract_list(ss):
 	return ret
 
 
-def extract_list(key: str, content: Dict[str, str]):
-	people = content.get(key.lower())
-	if not people:
+def extract_list(key: str, thread: Message):
+	try:
+		people = thread.get(key.lower())
+		if not people:
+			return []
+	except:
 		return []
 	return __extract_list(people)
 
@@ -213,7 +215,7 @@ def create_template(thread: Message, platform: Platform, to=None, cc=None):
 	return ret, files, is_patch
 
 
-def prepare_patch(mail, text, url, platform: Platform):
+def prepare_patch(mail: Message, text, url, platform: Platform):
 	tmp = gen_temp(url, platform)
 	fnm = str(mail.get("subject"))
 	sch = re.search(PATCH_PATTERN, fnm, re.IGNORECASE)
@@ -230,11 +232,38 @@ def prepare_patch(mail, text, url, platform: Platform):
 	cap = text.split("\n\n")[0]
 
 	with open(file, "wb") as f:
-		f.write(bytes(text, encoding="utf8"))
+		write_payload = bytes(f"{cap}\n\n".encode())
 
-	caption = "#patch #ml"
+		# sometimes an email PATCH is a multipart
+		# so, we must loop the payload first
+		# then, check if each payload is a PATCH payload
+		# or no, if it's a PATCH payload then write payload
+		# to the file.
+		if mail.is_multipart():
+			for m in mail.get_payload():
+				subject = mail.get("subject")
+				if not __is_patch(subject, str(m)):
+					continue
+				write_payload += m.get_payload(decode=True)
+		else:
+			write_payload += mail.get_payload(decode=True)
+
+		f.write(write_payload)
+
+	caption = f"#patch #ml\n{cap}"
 	if platform is Platform.TELEGRAM:
-		caption += fix_utf8_char("\n" + cap, True)
+		# Telegram media caption is limit to 1024
+		# set limit to 1021, because we will add "..."
+		if len(caption) >= 1024:
+			caption = caption[:1021] + "..."
+
+		fixed = fix_utf8_char(caption, html_escape=True)
+		return tmp, file, fixed, url
+
+	# Discord attachment caption limit about 1998 or 2000
+	# set limit to 1995, because we will add "..."
+	if len(caption) >= 1998:
+		caption = caption[:1995] + "..."
 
 	return tmp, file, caption, url
 
@@ -250,7 +279,7 @@ def remove_patch(tmp: Union[str, list]):
 def fix_utf8_char(text: str, html_escape: bool = True):
 	t = text.rstrip().replace("�"," ")
 	if html_escape:
-		t = html.escape(html.escape(text))
+		return html.escape(t)
 	return t
 
 
@@ -259,13 +288,17 @@ def get_decoded_payload(payload: Message):
 	tf_encode = payload.get("Content-Transfer-Encoding")
 	charset = payload.get_content_charset("utf-8")
 
-	if tf_encode == "base64":
-		return b64decode(p).decode(charset)
-	if tf_encode == "quoted-printable":
-		quobyte = quopri.decodestring(p.encode())
-		return quobyte.decode(charset)
+	if tf_encode in ["base64", "quoted-printable", "binary"]:
+		return payload.get_payload(decode=True) \
+			.decode(errors="replace")
 
 	return p.encode().decode(charset, errors="replace")
+
+
+def catch_err():
+	return traceback.format_exc() \
+	.encode("unicode_escape") \
+	.decode("utf-8")
 
 
 EMAIL_MSG_ID_PATTERN = r"<([^\<\>]+)>"
