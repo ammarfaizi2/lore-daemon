@@ -61,19 +61,23 @@ class Bot():
 		self.db.ping(reconnect=True, attempts=reconnect_attempts,
 			     delay=delay_in_secs)
 
+	async def report_err(caption):
+		if not caption:
+			caption = "No lore URL"
+		exc_str = utils.catch_err()
+		self.logger.warning(exc_str)
+		await self.client.send_log_file(caption)
 
 	async def __run(self):
 		self.logger.info("Running...")
+		url = None
 		try:
 			for url in self.db.get_atom_urls():
 				await self.__handle_atom_url(url)
 		except (OperationalError, DatabaseError) as e:
 			await self.handle_db_error(e)
 		except:
-			exc_str = utils.catch_err()
-			self.logger.warning(exc_str)
-			capt = "Unknown raw lore URL, see full details in the log file."
-			await self.client.send_log_file(capt)
+			await self.report_err(url)
 
 		if not self.isRunnerFixed:
 			self.isRunnerFixed = True
@@ -89,13 +93,8 @@ class Bot():
 	async def __handle_atom_url(self, url):
 		urls = await self.scraper.get_new_threads_urls(url)
 		for url in urls:
-			try:
-				mail = await self.scraper.get_email_from_url(url)
-				await self.__handle_mail(url, mail)
-			except:
-				exc_str = utils.catch_err()
-				self.logger.warning(exc_str)
-				await self.client.send_log_file(url)
+			mail = await self.scraper.get_email_from_url(url)
+			await self.__handle_mail(url, mail)
 
 
 	async def __handle_mail(self, url, mail):
