@@ -94,13 +94,36 @@ def extract_list(key: str, thread: Message):
 		return []
 	return __extract_list(people)
 
+#
+# TODO(ammarfaizi2): Move this somewhere else.
+#
+# It's safe to put them here temporarily because it's only us
+# who use this daemon. Plus, there is no secret information
+# here.
+#
+def __construct_tg_cc(ls, tg_cc_arr):
+	lcc = [
+		[r"fernandafmr12@gnuweeb.org", "@fernandafmr2"],
+		[r"ammarfaizi2@gnuweeb.org", "@ammarfaizi2"],
+		[r"kiizuha@gnuweeb.org", "@nekoha"],
+		[r"alviro.iskandar@gnuweeb.org", "@Viro_SSFS"],
+		[r"knscarlet@gnuweeb.org", "@KnScarlet"],
+		[r"rlapz@gnuweeb.org", "@rlapz"],
+	]
+	for i in lcc:
+		if re.search(i[0], ls) and i[1] not in tg_cc_arr:
+			tg_cc_arr.append(i[1])
+			return
 
 def consruct_to_n_cc(to: list, cc: list):
 	NR_MAX_LIST = 20
+	tg_cc_arr = []
+	tg_cc = ""
 
 	n = 0
 	ret = ""
 	for i in to:
+		__construct_tg_cc(i, tg_cc_arr)
 		if n >= NR_MAX_LIST:
 			ret += "To: ...\n"
 			break
@@ -109,6 +132,7 @@ def consruct_to_n_cc(to: list, cc: list):
 		ret += f"To: {i}\n"
 
 	for i in cc:
+		__construct_tg_cc(i, tg_cc_arr)
 		if n >= NR_MAX_LIST:
 			ret += "Cc: ...\n"
 			break
@@ -116,6 +140,13 @@ def consruct_to_n_cc(to: list, cc: list):
 		n += 1
 		ret += f"Cc: {i}\n"
 
+	if len(tg_cc_arr):
+		tg_cc = "Telegram-Cc:"
+		for i in tg_cc_arr:
+			tg_cc += " "+i
+		tg_cc += "\n"
+
+	ret += tg_cc
 	return ret
 
 
