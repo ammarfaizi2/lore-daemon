@@ -14,6 +14,7 @@ from dscord.gnuweeb import GWClient
 from atom.scraper import Scraper
 from atom import utils
 from enums import Platform
+from exceptions import DaemonException
 
 
 class Mutexes:
@@ -51,8 +52,19 @@ class Listener:
 
 	async def __run(self):
 		self.logger.info("Running...")
-		for url in self.db.get_atom_urls():
-			await self.__handle_atom_url(url)
+		url = None
+
+		try:
+			for url in self.db.get_atom_urls():
+				await self.__handle_atom_url(url)
+		except DaemonException as e:
+			e.set_atom_url(url)
+			await self.client.report_err(e)
+		except:
+			e = DaemonException()
+			e.set_atom_url(url)
+			e.set_message(utils.catch_err())
+			await self.client.report_err(e)
 
 		if not self.isRunnerFixed:
 			self.isRunnerFixed = True
@@ -72,9 +84,10 @@ class Listener:
 				mail = await self.scraper.get_email_from_url(url)
 				await self.__handle_mail(url, mail)
 			except:
-				exc_str = utils.catch_err()
-				self.client.logger.warning(exc_str)
-				await self.client.send_log_file(url)
+				e = DaemonException()
+				e.set_thread_url(url)
+				e.set_message(utils.catch_err())
+				raise e
 
 
 	async def __handle_mail(self, url, mail):
