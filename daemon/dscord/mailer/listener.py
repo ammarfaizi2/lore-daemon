@@ -6,6 +6,7 @@
 
 import asyncio
 import re
+from mysql.connector.errors import OperationalError, DatabaseError
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from discord import File
 from discord import Message
@@ -50,6 +51,24 @@ class Listener:
 		self.runner = self.sched.add_job(func=self.__run)
 
 
+	async def handle_db_error(self, e):
+		#
+		# TODO(ammarfaizi2):
+		# Ideally, we also want to log and report this situation.
+		#
+		self.logger.error(f"Database error: {str(e)}")
+		self.logger.info("Reconnecting to the database...")
+
+		#
+		# Don't do this too often to avoid reconnect burst.
+		#
+		delay_in_secs = 3
+		reconnect_attempts = 3
+
+		self.db.ping(reconnect=True, attempts=reconnect_attempts,
+			     delay=delay_in_secs)
+
+
 	async def __run(self):
 		self.logger.info("Running...")
 		url = None
@@ -57,6 +76,8 @@ class Listener:
 		try:
 			for url in self.db.get_atom_urls():
 				await self.__handle_atom_url(url)
+		except (OperationalError, DatabaseError) as e:
+			await self.handle_db_error(e)
 		except DaemonException as e:
 			e.set_atom_url(url)
 			await self.client.report_err(e)
