@@ -138,14 +138,7 @@ class Bot():
 			self.logger.debug(md)
 			return False
 
-		try:
-			text, files, is_patch = utils.create_template(mail, Platform.TELEGRAM)
-		except:
-			exc_str = utils.catch_err()
-			self.logger.warning(exc_str)
-			await self.client.send_log_file(url)
-			return
-
+		text, files, is_patch = utils.create_template(mail, Platform.TELEGRAM)
 		reply_to = self.get_reply(mail, tg_chat_id)
 		url = str(re.sub(r"/raw$", "", url))
 
