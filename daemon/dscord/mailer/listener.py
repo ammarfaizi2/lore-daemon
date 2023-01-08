@@ -106,14 +106,7 @@ class Listener:
 			self.logger.debug(md)
 			return False
 
-		try:
-			text, files, is_patch = utils.create_template(mail, Platform.DISCORD)
-		except:
-			exc_str = utils.catch_err()
-			self.client.logger.warning(exc_str)
-			await self.client.send_log_file(url)
-			return
-
+		text, files, is_patch = utils.create_template(mail, Platform.DISCORD)
 		reply_to = self.get_discord_reply(mail, dc_chat_id)
 		url = str(re.sub(r"/raw$", "", url))
 
