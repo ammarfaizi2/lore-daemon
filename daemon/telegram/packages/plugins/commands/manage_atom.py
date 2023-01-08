@@ -5,16 +5,16 @@
 
 from pyrogram.types import Message
 from pyrogram import filters
-from telegram.packages import DaemonClient
+from telegram.packages import DaemonTelegram
 from atom import utils
 from telegram import config
 
 
-@DaemonClient.on_message(
+@DaemonTelegram.on_message(
 	filters.command("add_atom") &
 	config.admin_only
 )
-async def add_atom_url(c: DaemonClient, m: Message):
+async def add_atom_url(c: DaemonTelegram, m: Message):
 	if len(m.command) <= 1:
 		tutor = "Please specify the URL\n"
 		tutor += "Example: `/add_atom https://lore.kernel.org/linux-sgx/new.atom`"
@@ -32,11 +32,11 @@ async def add_atom_url(c: DaemonClient, m: Message):
 	await m.reply(f"Success add **{text}** for listening new email")
 
 
-@DaemonClient.on_message(
+@DaemonTelegram.on_message(
 	filters.command("del_atom") &
 	config.admin_only
 )
-async def del_atom_url(c: DaemonClient, m: Message):
+async def del_atom_url(c: DaemonTelegram, m: Message):
 	atoms = c.db.get_atom_urls()
 	if len(atoms) == 0:
 		return await m.reply("Currently empty.")

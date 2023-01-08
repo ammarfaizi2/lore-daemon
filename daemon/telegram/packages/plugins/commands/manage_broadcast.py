@@ -5,16 +5,16 @@
 
 from pyrogram.types import Message
 from pyrogram import filters, enums
-from telegram.packages import DaemonClient
+from telegram.packages import DaemonTelegram
 from atom import utils
 from telegram import config
 
 
-@DaemonClient.on_message(
+@DaemonTelegram.on_message(
 	filters.command("add_bc") &
 	config.admin_only
 )
-async def add_broadcast(c: DaemonClient, m: Message):
+async def add_broadcast(c: DaemonTelegram, m: Message):
 	if m.chat.type == enums.ChatType.PRIVATE:
 		chat_name = m.chat.first_name
 	else:
@@ -37,11 +37,11 @@ async def add_broadcast(c: DaemonClient, m: Message):
 	await m.reply(msg)
 
 
-@DaemonClient.on_message(
+@DaemonTelegram.on_message(
 	filters.command("del_bc") &
 	config.admin_only
 )
-async def del_broadcast(c: DaemonClient, m: Message):
+async def del_broadcast(c: DaemonTelegram, m: Message):
 	if "--list" in m.text:
 		chats = c.db.get_broadcast_chats()
 		if len(chats) == 0:

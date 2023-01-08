@@ -24,7 +24,7 @@ def handle_flood(func: Callable[[T], T]) -> Callable[[T], T]:
 			try:
 				return await func(*args)
 			except FloodWait as e:
-				# Calling logger attr from the DaemonClient() class
+				# Calling logger attr from the DaemonTelegram() class
 				logger = args[0].logger
 
 				_flood_exceptions(e, logger)

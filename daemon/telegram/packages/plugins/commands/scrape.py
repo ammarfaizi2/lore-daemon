@@ -6,7 +6,7 @@
 
 from pyrogram.types import Message
 from pyrogram import filters
-from telegram.packages import DaemonClient
+from telegram.packages import DaemonTelegram
 from atom import Scraper
 from atom import utils
 from enums import Platform
@@ -22,11 +22,11 @@ import asyncio
 #    .lore https://lore.kernel.org/path/message_id/raw
 #
 LORE_CMD_URL_PATTERN = r"^(?:\/|\.|\!)lore\s+(https?:\/\/lore\.kernel\.org\/\S+)"
-@DaemonClient.on_message(
+@DaemonTelegram.on_message(
 	filters.regex(LORE_CMD_URL_PATTERN) &
 	config.admin_only
 )
-async def scrap_email(c: DaemonClient, m: Message):
+async def scrap_email(c: DaemonTelegram, m: Message):
 	p = re.search(LORE_CMD_URL_PATTERN, m.text)
 	if not p:
 		return

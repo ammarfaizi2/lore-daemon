@@ -4,10 +4,12 @@
 # Copyright (C) 2022  Ammar Faizi <ammarfaizi2@gnuweeb.org>
 #
 
+from pyrogram import idle
 from pyrogram.types import Message
 from mysql.connector.errors import OperationalError, DatabaseError
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from telegram.packages import DaemonClient
+from telegram.packages import DaemonTelegram
+from exceptions import DaemonException
 from atom import Scraper
 from atom import utils
 from enums import Platform
@@ -21,7 +23,7 @@ class BotMutexes():
 
 
 class Bot():
-	def __init__(self, client: DaemonClient, sched: AsyncIOScheduler,
+	def __init__(self, client: DaemonTelegram, sched: AsyncIOScheduler,
 			scraper: Scraper, mutexes: BotMutexes):
 		self.client = client
 		self.sched = sched
@@ -37,11 +39,17 @@ class Bot():
 		# Execute __run() once to avoid high latency at
 		# initilization.
 		#
+		self.sched.start()
+		self.client.start()
+
 		self.runner = self.sched.add_job(
 			func=self.__run,
 			misfire_grace_time=None,
 			max_instances=1
 		)
+
+		idle()
+		self.client.stop()
 
 
 	async def handle_db_error(self, e):
@@ -61,12 +69,6 @@ class Bot():
 		self.db.ping(reconnect=True, attempts=reconnect_attempts,
 			     delay=delay_in_secs)
 
-	async def report_err(caption):
-		if not caption:
-			caption = "No lore URL"
-		exc_str = utils.catch_err()
-		self.logger.warning(exc_str)
-		await self.client.send_log_file(caption)
 
 	async def __run(self):
 		self.logger.info("Running...")
@@ -76,8 +78,14 @@ class Bot():
 				await self.__handle_atom_url(url)
 		except (OperationalError, DatabaseError) as e:
 			await self.handle_db_error(e)
+		except DaemonException as e:
+			e.set_atom_url(url)
+			await self.client.report_err(e)
 		except:
-			await self.report_err(url)
+			e = DaemonException()
+			e.set_atom_url(url)
+			e.set_message(utils.catch_err())
+			await self.client.report_err(e)
 
 		if not self.isRunnerFixed:
 			self.isRunnerFixed = True
@@ -93,8 +101,14 @@ class Bot():
 	async def __handle_atom_url(self, url):
 		urls = await self.scraper.get_new_threads_urls(url)
 		for url in urls:
-			mail = await self.scraper.get_email_from_url(url)
-			await self.__handle_mail(url, mail)
+			try:
+				mail = await self.scraper.get_email_from_url(url)
+				await self.__handle_mail(url, mail)
+			except:
+				e = DaemonException()
+				e.set_thread_url(url)
+				e.set_message(utils.catch_err())
+				raise e
 
 
 	async def __handle_mail(self, url, mail):
@@ -124,14 +138,7 @@ class Bot():
 			self.logger.debug(md)
 			return False
 
-		try:
-			text, files, is_patch = utils.create_template(mail, Platform.TELEGRAM)
-		except:
-			exc_str = utils.catch_err()
-			self.logger.warning(exc_str)
-			await self.client.send_log_file(url)
-			return
-
+		text, files, is_patch = utils.create_template(mail, Platform.TELEGRAM)
 		reply_to = self.get_reply(mail, tg_chat_id)
 		url = str(re.sub(r"/raw$", "", url))
 

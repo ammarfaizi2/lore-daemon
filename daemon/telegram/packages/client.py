@@ -14,9 +14,10 @@ from logger import BotLogger
 from telegram import config
 from telegram.database import DB
 from .decorator import handle_flood
+from exceptions import DaemonException
 
 
-class DaemonClient(Client):
+class DaemonTelegram(Client):
 	def __init__(self, name: str, api_id: int,
 		api_hash: str, conn, logger: BotLogger,
 		**kwargs
@@ -25,6 +26,13 @@ class DaemonClient(Client):
 				api_hash, **kwargs)
 		self.db = DB(conn)
 		self.logger = logger
+
+
+	async def report_err(self, e: DaemonException):
+		capt = f"Atom URL: {e.atom_url}\n"
+		capt += f"Thread URL: {e.thread_url}"
+		self.logger.warning(e.original_exception)
+		await self.send_log_file(capt)
 
 
 	@handle_flood

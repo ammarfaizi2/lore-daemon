@@ -7,8 +7,9 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 from mysql import connector
+from pyrogram import idle
 from atom import Scraper
-from telegram.packages import DaemonClient
+from telegram.packages import DaemonTelegram
 from telegram.mailer import BotMutexes
 from telegram.mailer import Bot
 from logger import BotLogger
@@ -27,7 +28,7 @@ def main():
 	else:
 		port = int(port)
 
-	client = DaemonClient(
+	client = DaemonTelegram(
 		"telegram/storage/EmailScraper",
 		api_id=int(os.getenv("API_ID")),
 		api_hash=os.getenv("API_HASH"),
@@ -58,10 +59,7 @@ def main():
 		scraper=Scraper(),
 		mutexes=BotMutexes()
 	)
-	sched.start()
 	bot.run()
-	client.run()
-
 
 if __name__ == '__main__':
 	main()

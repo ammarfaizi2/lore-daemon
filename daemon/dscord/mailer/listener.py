@@ -6,6 +6,7 @@
 
 import asyncio
 import re
+from mysql.connector.errors import OperationalError, DatabaseError
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from discord import File
 from discord import Message
@@ -14,6 +15,7 @@ from dscord.gnuweeb import GWClient
 from atom.scraper import Scraper
 from atom import utils
 from enums import Platform
+from exceptions import DaemonException
 
 
 class Mutexes:
@@ -49,10 +51,41 @@ class Listener:
 		self.runner = self.sched.add_job(func=self.__run)
 
 
+	async def handle_db_error(self, e):
+		#
+		# TODO(ammarfaizi2):
+		# Ideally, we also want to log and report this situation.
+		#
+		self.logger.error(f"Database error: {str(e)}")
+		self.logger.info("Reconnecting to the database...")
+
+		#
+		# Don't do this too often to avoid reconnect burst.
+		#
+		delay_in_secs = 3
+		reconnect_attempts = 3
+
+		self.db.ping(reconnect=True, attempts=reconnect_attempts,
+			     delay=delay_in_secs)
+
+
 	async def __run(self):
 		self.logger.info("Running...")
-		for url in self.db.get_atom_urls():
-			await self.__handle_atom_url(url)
+		url = None
+
+		try:
+			for url in self.db.get_atom_urls():
+				await self.__handle_atom_url(url)
+		except (OperationalError, DatabaseError) as e:
+			await self.handle_db_error(e)
+		except DaemonException as e:
+			e.set_atom_url(url)
+			await self.client.report_err(e)
+		except:
+			e = DaemonException()
+			e.set_atom_url(url)
+			e.set_message(utils.catch_err())
+			await self.client.report_err(e)
 
 		if not self.isRunnerFixed:
 			self.isRunnerFixed = True
@@ -72,9 +105,10 @@ class Listener:
 				mail = await self.scraper.get_email_from_url(url)
 				await self.__handle_mail(url, mail)
 			except:
-				exc_str = utils.catch_err()
-				self.client.logger.warning(exc_str)
-				await self.client.send_log_file(url)
+				e = DaemonException()
+				e.set_thread_url(url)
+				e.set_message(utils.catch_err())
+				raise e
 
 
 	async def __handle_mail(self, url, mail):
@@ -106,14 +140,7 @@ class Listener:
 			self.logger.debug(md)
 			return False
 
-		try:
-			text, files, is_patch = utils.create_template(mail, Platform.DISCORD)
-		except:
-			exc_str = utils.catch_err()
-			self.client.logger.warning(exc_str)
-			await self.client.send_log_file(url)
-			return
-
+		text, files, is_patch = utils.create_template(mail, Platform.DISCORD)
 		reply_to = self.get_discord_reply(mail, dc_chat_id)
 		url = str(re.sub(r"/raw$", "", url))
 
