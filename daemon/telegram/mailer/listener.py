@@ -68,12 +68,6 @@ class Bot():
 		self.db.ping(reconnect=True, attempts=reconnect_attempts,
 			     delay=delay_in_secs)
 
-	async def report_err(caption):
-		if not caption:
-			caption = "No lore URL"
-		exc_str = utils.catch_err()
-		self.logger.warning(exc_str)
-		await self.client.send_log_file(caption)
 
 	async def __run(self):
 		self.logger.info("Running...")
@@ -84,7 +78,7 @@ class Bot():
 		except (OperationalError, DatabaseError) as e:
 			await self.handle_db_error(e)
 		except:
-			await self.report_err(url)
+			await self.client.report_err(url)
 
 		if not self.isRunnerFixed:
 			self.isRunnerFixed = True
