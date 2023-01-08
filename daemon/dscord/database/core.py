@@ -15,6 +15,12 @@ class DB(DBMethods):
 		self.cur = self.conn.cursor(buffered=True)
 
 
+	def ping(self, reconnect=True, attempts=3, delay=3):
+		self.conn.ping(reconnect=reconnect, attempts=attempts,
+				delay=delay)
+		self.cur = self.conn.cursor(buffered=True)
+
+
 	def __del__(self):
 		self.cur.close()
 		self.conn.close()
