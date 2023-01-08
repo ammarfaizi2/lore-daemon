@@ -13,6 +13,7 @@ from . import filters
 from . import models
 from atom import utils
 from enums import Platform
+from exceptions import DaemonException
 from logger.log import BotLogger
 from dscord.config import ACTIVITY_NAME, LOG_CHANNEL_ID
 from dscord.database import DB
@@ -38,6 +39,13 @@ class GWClient(commands.Bot):
 			name=".gnuweeb.plugins",
 			package="dscord"
 		)
+
+
+	async def report_err(self, e: DaemonException):
+		self.logger.warning(e.original_exception)
+		capt = f"Atom URL: {e.atom_url}\n"
+		capt += f"Thread URL: {e.thread_url}"
+		await self.send_log_file(capt)
 
 
 	@filters.wait_on_limit
