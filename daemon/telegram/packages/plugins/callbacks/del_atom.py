@@ -3,14 +3,14 @@
 # Copyright (C) 2022  Muhammad Rizki <riskimuhammmad1@gmail.com>
 #
 
-from telegram.packages import DaemonClient
+from telegram.packages import DaemonTelegram
 from atom import utils
 from pyrogram.types import CallbackQuery
 from telegram import config
 
 
-@DaemonClient.on_callback_query(config.admin_only, group=1)
-async def on_del_atom(c: DaemonClient, cb: CallbackQuery):
+@DaemonTelegram.on_callback_query(config.admin_only, group=1)
+async def on_del_atom(c: DaemonTelegram, cb: CallbackQuery):
 	if not "del_atom" in cb.data:
 		return
 

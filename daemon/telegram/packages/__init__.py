@@ -1,1 +1,1 @@
-from .client import DaemonClient
+from .client import DaemonTelegram

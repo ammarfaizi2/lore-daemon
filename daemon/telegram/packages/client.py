@@ -17,7 +17,7 @@ from .decorator import handle_flood
 from exceptions import DaemonException
 
 
-class DaemonClient(Client):
+class DaemonTelegram(Client):
 	def __init__(self, name: str, api_id: int,
 		api_hash: str, conn, logger: BotLogger,
 		**kwargs

@@ -8,7 +8,7 @@ from pyrogram import idle
 from pyrogram.types import Message
 from mysql.connector.errors import OperationalError, DatabaseError
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from telegram.packages import DaemonClient
+from telegram.packages import DaemonTelegram
 from exceptions import DaemonException
 from atom import Scraper
 from atom import utils
@@ -23,7 +23,7 @@ class BotMutexes():
 
 
 class Bot():
-	def __init__(self, client: DaemonClient, sched: AsyncIOScheduler,
+	def __init__(self, client: DaemonTelegram, sched: AsyncIOScheduler,
 			scraper: Scraper, mutexes: BotMutexes):
 		self.client = client
 		self.sched = sched
