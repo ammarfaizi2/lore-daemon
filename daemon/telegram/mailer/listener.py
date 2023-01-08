@@ -4,6 +4,7 @@
 # Copyright (C) 2022  Ammar Faizi <ammarfaizi2@gnuweeb.org>
 #
 
+from pyrogram import idle
 from pyrogram.types import Message
 from mysql.connector.errors import OperationalError, DatabaseError
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -37,11 +38,17 @@ class Bot():
 		# Execute __run() once to avoid high latency at
 		# initilization.
 		#
+		self.sched.start()
+		self.client.start()
+
 		self.runner = self.sched.add_job(
 			func=self.__run,
 			misfire_grace_time=None,
 			max_instances=1
 		)
+
+		idle()
+		self.client.stop()
 
 
 	async def handle_db_error(self, e):
