@@ -9,6 +9,7 @@ from pyrogram.types import Message
 from mysql.connector.errors import OperationalError, DatabaseError
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from telegram.packages import DaemonClient
+from exceptions import DaemonException
 from atom import Scraper
 from atom import utils
 from enums import Platform
@@ -77,8 +78,14 @@ class Bot():
 				await self.__handle_atom_url(url)
 		except (OperationalError, DatabaseError) as e:
 			await self.handle_db_error(e)
+		except DaemonException as e:
+			e.set_atom_url(url)
+			await self.client.report_err(e)
 		except:
-			await self.client.report_err(url)
+			e = DaemonException()
+			e.set_atom_url(url)
+			e.set_message(utils.catch_err())
+			await self.client.report_err(e)
 
 		if not self.isRunnerFixed:
 			self.isRunnerFixed = True
@@ -94,8 +101,14 @@ class Bot():
 	async def __handle_atom_url(self, url):
 		urls = await self.scraper.get_new_threads_urls(url)
 		for url in urls:
-			mail = await self.scraper.get_email_from_url(url)
-			await self.__handle_mail(url, mail)
+			try:
+				mail = await self.scraper.get_email_from_url(url)
+				await self.__handle_mail(url, mail)
+			except:
+				e = DaemonException()
+				e.set_thread_url(url)
+				e.set_message(utils.catch_err())
+				raise e
 
 
 	async def __handle_mail(self, url, mail):
