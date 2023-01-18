@@ -11,6 +11,7 @@ from atom import Scraper
 from atom import utils
 from enums import Platform
 from telegram import config
+from exceptions import DaemonException
 import re
 import asyncio
 
@@ -41,9 +42,11 @@ async def scrap_email(c: DaemonTelegram, m: Message):
 		mail = await s.get_email_from_url(url)
 		text, files, is_patch = utils.create_template(mail, Platform.TELEGRAM)
 	except:
-		exc_str = utils.catch_err()
-		c.logger.warning(exc_str)
-		await c.send_log_file(url)
+		e = DaemonException()
+		e.set_thread_url(url)
+		e.set_message(utils.catch_err())
+		await c.report_err(e)
+		return
 
 	if is_patch:
 		m = await c.send_patch_email(
