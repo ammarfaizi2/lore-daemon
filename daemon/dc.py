@@ -13,8 +13,6 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dscord.gnuweeb import GWClient
 from dscord.mailer import Listener
 from dscord.mailer import Mutexes
-from enums.platform import Platform
-from logger import BotLogger
 from atom import Scraper
 
 
@@ -28,9 +26,6 @@ def main():
 		}
 	)
 
-	logger = BotLogger(Platform.DISCORD)
-	logger.init()
-
 	logging.config.fileConfig("dscord/discord.logger.conf")
 	logging.getLogger("apscheduler").setLevel(logging.WARNING)
 	logging.getLogger("discord").setLevel(logging.WARNING)
@@ -42,8 +37,7 @@ def main():
 			port=int(os.environ.get("DB_PORT", 3306)),
 			password=os.getenv("DB_PASS"),
 			database=os.getenv("DB_NAME")
-		),
-		logger=logger
+		)
 	)
 
 	mailer = Listener(

@@ -6,6 +6,7 @@
 
 import asyncio
 import re
+import logging
 from mysql.connector.errors import OperationalError, DatabaseError
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from discord import File
@@ -16,6 +17,9 @@ from atom.scraper import Scraper
 from atom import utils
 from enums import Platform
 from exceptions import DaemonException
+
+
+log = logging.getLogger("dscord")
 
 
 class Mutexes:
@@ -36,7 +40,6 @@ class Listener:
 		self.scraper = scraper
 		self.mutexes = mutexes
 		self.db = client.db
-		self.logger = client.logger
 		self.isRunnerFixed = False
 		self.runner = None
 
@@ -46,7 +49,7 @@ class Listener:
 		# Execute __run() once to avoid high latency at
 		# initilization.
 		#
-		self.logger.info("Initialize listener...\n")
+		log.info("Initialize listener...\n")
 		self.sched.start()
 		self.runner = self.sched.add_job(func=self.__run)
 
@@ -56,8 +59,8 @@ class Listener:
 		# TODO(ammarfaizi2):
 		# Ideally, we also want to log and report this situation.
 		#
-		self.logger.error(f"Database error: {str(e)}")
-		self.logger.info("Reconnecting to the database...")
+		log.error(f"Database error: {str(e)}")
+		log.info("Reconnecting to the database...")
 
 		#
 		# Don't do this too often to avoid reconnect burst.
@@ -70,7 +73,7 @@ class Listener:
 
 
 	async def __run(self):
-		self.logger.info("Running...")
+		log.info("Running...")
 		url = None
 
 		try:
@@ -128,7 +131,7 @@ class Listener:
 		email_msg_id = utils.get_email_msg_id(mail)
 		if not email_msg_id:
 			md = "email_msg_id not detected, skipping malformed email"
-			self.logger.debug(md)
+			log.debug(md)
 			return False
 
 		email_id = self.__get_email_id_sent(
@@ -137,7 +140,7 @@ class Listener:
 		)
 		if not email_id:
 			md = f"Skipping {email_id} because has already been sent to Discord"
-			self.logger.debug(md)
+			log.debug(md)
 			return False
 
 		text, files, is_patch = utils.create_template(mail, Platform.DISCORD)
