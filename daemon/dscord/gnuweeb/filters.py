@@ -4,16 +4,13 @@
 #
 
 
-# built-in/dev package imports
 import asyncio
 from typing import Any
 from functools import wraps
 
-# Discord imports
 import discord
 from discord import Interaction
 
-# gnuweeb package import
 from dscord import config
 from logger import BotLogger
 
