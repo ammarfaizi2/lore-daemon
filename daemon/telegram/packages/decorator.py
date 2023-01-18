@@ -4,25 +4,24 @@
 #
 
 from pyrogram.errors.exceptions.flood_420 import FloodWait
-from pyrogram.types import Message
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, TypeVar, Coroutine
+from typing_extensions import ParamSpec, ParamSpecArgs, ParamSpecKwargs
 from functools import wraps
 import re
 import asyncio
 
 __all__ = ["handle_flood"]
 
-T = TypeVar("T", bound=Message)
+T = TypeVar("T")
+P = ParamSpec("P")
 
-#
-# TODO(Muhammad Rizki): Add more typing for @handle_flood
-#
-def handle_flood(func: Callable[[T], T]) -> Callable[[T], T]:
+
+def handle_flood(func: Callable[P, Coroutine[Any,Any,T]]) -> Callable[P, Coroutine[Any,Any,T]]:
 	@wraps(func)
-	async def callback(*args: Any) -> Any:
+	async def callback(*args: ParamSpecArgs, **kwargs: ParamSpecKwargs) -> T:
 		while True:
 			try:
-				return await func(*args)
+				return await func(*args, **kwargs)
 			except FloodWait as e:
 				# Calling logger attr from the DaemonTelegram() class
 				logger = args[0].logger
