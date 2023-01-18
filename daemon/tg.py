@@ -14,6 +14,8 @@ from telegram.mailer import BotMutexes
 from telegram.mailer import Bot
 from logger import BotLogger
 import os
+import logging
+import logging.config
 
 
 def main():
@@ -21,6 +23,10 @@ def main():
 
 	logger = BotLogger()
 	logger.init()
+
+	logging.config.fileConfig("telegram/telegram.logger.conf")
+	logging.getLogger("apscheduler").setLevel(logging.WARNING)
+	logging.getLogger("pyrogram").setLevel(logging.WARNING)
 
 	client = DaemonTelegram(
 		"telegram/storage/EmailScraper",
