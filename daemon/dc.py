@@ -4,6 +4,8 @@
 #
 
 import os
+import logging
+import logging.config
 from dotenv import load_dotenv
 from mysql import connector
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -28,6 +30,10 @@ def main():
 
 	logger = BotLogger(Platform.DISCORD)
 	logger.init()
+
+	logging.config.fileConfig("dscord/discord.logger.conf")
+	logging.getLogger("apscheduler").setLevel(logging.WARNING)
+	logging.getLogger("discord").setLevel(logging.WARNING)
 
 	client = GWClient(
 		db_conn=connector.connect(
