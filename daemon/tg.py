@@ -7,12 +7,10 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 from mysql import connector
-from pyrogram import idle
 from atom import Scraper
 from telegram.packages import DaemonTelegram
 from telegram.mailer import BotMutexes
 from telegram.mailer import Bot
-from logger import BotLogger
 import os
 import logging
 import logging.config
@@ -20,9 +18,6 @@ import logging.config
 
 def main():
 	load_dotenv("telegram.env")
-
-	logger = BotLogger()
-	logger.init()
 
 	logging.config.fileConfig("telegram/telegram.logger.conf")
 	logging.getLogger("apscheduler").setLevel(logging.WARNING)
@@ -33,7 +28,6 @@ def main():
 		api_id=int(os.getenv("API_ID")),
 		api_hash=os.getenv("API_HASH"),
 		bot_token=os.getenv("BOT_TOKEN"),
-		logger=logger,
 		conn=connector.connect(
 			host=os.getenv("DB_HOST"),
 			user=os.getenv("DB_USER"),

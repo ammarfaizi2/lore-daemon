@@ -15,6 +15,10 @@ from atom import utils
 from enums import Platform
 import asyncio
 import re
+import logging
+
+
+log = logging.getLogger("telegram")
 
 
 class BotMutexes():
@@ -30,7 +34,6 @@ class Bot():
 		self.scraper = scraper
 		self.mutexes = mutexes
 		self.db = client.db
-		self.logger = client.logger
 		self.isRunnerFixed = False
 
 
@@ -57,8 +60,8 @@ class Bot():
 		# TODO(ammarfaizi2):
 		# Ideally, we also want to log and report this situation.
 		#
-		self.logger.error(f"Database error: {str(e)}")
-		self.logger.info("Reconnecting to the database...")
+		log.error(f"Database error: {str(e)}")
+		log.info("Reconnecting to the database...")
 
 		#
 		# Don't do this too often to avoid reconnect burst.
@@ -71,7 +74,7 @@ class Bot():
 
 
 	async def __run(self):
-		self.logger.info("Running...")
+		log.info("Running...")
 		url = None
 		try:
 			for url in self.db.get_atom_urls():
@@ -128,14 +131,14 @@ class Bot():
 
 		if not email_msg_id:
 			md = "email_msg_id not detected, skipping malformed email"
-			self.logger.debug(md)
+			log.debug(md)
 			return False
 
 		email_id = self.__mail_id_from_db(email_msg_id,
 							tg_chat_id)
 		if not email_id:
 			md = f"Skipping {email_id} because has already been sent to Telegram"
-			self.logger.debug(md)
+			log.debug(md)
 			return False
 
 		text, files, is_patch = utils.create_template(mail, Platform.TELEGRAM)
