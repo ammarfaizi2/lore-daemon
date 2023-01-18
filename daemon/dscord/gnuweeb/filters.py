@@ -5,7 +5,8 @@
 
 
 import asyncio
-from typing import Any
+from typing import Any, Callable, TypeVar, Coroutine
+from typing_extensions import ParamSpec, ParamSpecArgs, ParamSpecKwargs
 from functools import wraps
 
 import discord
@@ -15,9 +16,13 @@ from dscord import config
 from logger import BotLogger
 
 
-def lore_admin(func):
+T = TypeVar("T")
+P = ParamSpec("P")
+
+
+def lore_admin(func: Callable[P, Coroutine[Any,Any,T]]) -> Callable[P, Coroutine[Any,Any,T]]:
 	@wraps(func)
-	async def callback(*args: Any, **kwargs: Any) -> Any:
+	async def callback(*args: ParamSpecArgs, **kwargs: ParamSpecKwargs) -> T:
 		i: "Interaction" = args[1]
 		user_roles = [role.id for role in i.user.roles]
 
@@ -33,12 +38,12 @@ def lore_admin(func):
 	return callback
 
 
-def wait_on_limit(func):
+def wait_on_limit(func: Callable[P, Coroutine[Any,Any,T]]) -> Callable[P, Coroutine[Any,Any,T]]:
 	@wraps(func)
-	async def callback(*args: Any) -> Any:
+	async def callback(*args: ParamSpecArgs, **kwargs: ParamSpecKwargs) -> T:
 		while True:
 			try:
-				return await func(*args)
+				return await func(*args, **kwargs)
 			except discord.errors.RateLimited as e:
 				# Calling logger attr from the GWClient() class
 				logger = args[0].logger
