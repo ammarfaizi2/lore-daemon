@@ -323,6 +323,9 @@ def get_decoded_payload(payload: Message):
 		return payload.get_payload(decode=True) \
 			.decode(errors="replace")
 
+	if charset == "unknown-8bit":
+		return p.encode().decode("utf-8", "surrogateescape")
+
 	return p.encode().decode(charset, errors="replace")
 
 
