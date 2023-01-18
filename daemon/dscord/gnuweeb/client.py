@@ -4,7 +4,7 @@
 #
 
 import discord
-from discord import Interaction
+from discord import Interaction, Message
 from discord.ext import commands
 from discord import Intents
 from typing import Union
@@ -60,7 +60,7 @@ class GWClient(commands.Bot):
 
 	@filters.wait_on_limit
 	async def send_text_email(self, guild_id: int, chat_id: int, text: str,
-				reply_to: Union[int, None] = None, url: str = None):
+				reply_to: Union[int, None] = None, url: str = None) -> Message:
 		self.logger.debug("[send_text_email]")
 		channel = self.get_channel(chat_id)
 
@@ -77,7 +77,7 @@ class GWClient(commands.Bot):
 
 	@filters.wait_on_limit
 	async def send_patch_email(self, mail, guild_id: int, chat_id: int, text: str,
-				reply_to: Union[int, None] = None, url: str = None):
+				reply_to: Union[int, None] = None, url: str = None) -> Message:
 		self.logger.debug("[send_patch_email]")
 		tmp, doc, caption, url = utils.prepare_patch(
 			mail, text, url, Platform.DISCORD
