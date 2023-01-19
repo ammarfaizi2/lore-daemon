@@ -3,41 +3,46 @@
 # Copyright (C) 2022  Muhammad Rizki <riskimuhammmad1@gmail.com>
 #
 
+import logging
 from pyrogram import Client
 from pyrogram.enums import ParseMode
 from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from typing import Union
 from email.message import Message
+
 from atom import utils
 from enums import Platform
-from logger import BotLogger
 from telegram import config
 from telegram.database import DB
 from .decorator import handle_flood
 from exceptions import DaemonException
 
 
+log = logging.getLogger("telegram")
+
+
 class DaemonTelegram(Client):
 	def __init__(self, name: str, api_id: int,
-		api_hash: str, conn, logger: BotLogger,
-		**kwargs
+		api_hash: str, conn, **kwargs
 	):
 		super().__init__(name, api_id,
 				api_hash, **kwargs)
 		self.db = DB(conn)
-		self.logger = logger
 
 
 	async def report_err(self, e: DaemonException):
 		capt = f"Atom URL: {e.atom_url}\n"
 		capt += f"Thread URL: {e.thread_url}"
-		self.logger.warning(e.original_exception)
+		log.warning(e.original_exception)
 		await self.send_log_file(capt)
 
 
 	@handle_flood
 	async def send_log_file(self, caption: str):
-		filename = self.logger.handlers[0].baseFilename
+		for handler in log.root.handlers:
+			if isinstance(handler, logging.FileHandler):
+				filename = handler.baseFilename
+
 		await self.send_document(
 			config.LOG_CHANNEL_ID,
 			filename,
@@ -54,7 +59,7 @@ class DaemonTelegram(Client):
 		url: str = None,
 		parse_mode: ParseMode = ParseMode.HTML
 	) -> Message:
-		self.logger.debug("[send_text_email]")
+		log.debug("[send_text_email]")
 		return await self.send_message(
 			chat_id=chat_id,
 			text=text,
@@ -79,7 +84,7 @@ class DaemonTelegram(Client):
 		url: str = None,
 		parse_mode: ParseMode = ParseMode.HTML
 	) -> Message:
-		self.logger.debug("[send_patch_email]")
+		log.debug("[send_patch_email]")
 		tmp, doc, caption, url = utils.prepare_patch(
 			mail, text, url, Platform.TELEGRAM
 		)

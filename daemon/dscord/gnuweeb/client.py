@@ -3,8 +3,9 @@
 # Copyright (C) 2022  Muhammad Rizki <kiizuha@gnuweeb.org>
 #
 
+import logging
 import discord
-from discord import Interaction
+from discord import Interaction, Message
 from discord.ext import commands
 from discord import Intents
 from typing import Union
@@ -14,18 +15,19 @@ from . import models
 from atom import utils
 from enums import Platform
 from exceptions import DaemonException
-from logger.log import BotLogger
 from dscord.config import ACTIVITY_NAME, LOG_CHANNEL_ID
 from dscord.database import DB
 
 
+log = logging.getLogger("dscord")
+
+
 class GWClient(commands.Bot):
-	def __init__(self, db_conn, logger: BotLogger) -> None:
+	def __init__(self, db_conn) -> None:
 		self.db = DB(db_conn)
 		intents = Intents.default()
 		intents.message_content = True
 		self.mailer = None
-		self.logger = logger
 		super().__init__(
 			command_prefix=["$", "."],
 			description="Just a bot for receiving lore emails.",
@@ -42,7 +44,7 @@ class GWClient(commands.Bot):
 
 
 	async def report_err(self, e: DaemonException):
-		self.logger.warning(e.original_exception)
+		log.warning(e.original_exception)
 		capt = f"Atom URL: {e.atom_url}\n"
 		capt += f"Thread URL: {e.thread_url}"
 		await self.send_log_file(capt)
@@ -50,7 +52,10 @@ class GWClient(commands.Bot):
 
 	@filters.wait_on_limit
 	async def send_log_file(self, caption: str):
-		filename = self.logger.handlers[0].baseFilename
+		for handler in log.root.handlers:
+			if isinstance(handler, logging.FileHandler):
+				filename = handler.baseFilename
+
 		channel = self.get_channel(LOG_CHANNEL_ID)
 		await channel.send(
 			content=caption,
@@ -60,8 +65,8 @@ class GWClient(commands.Bot):
 
 	@filters.wait_on_limit
 	async def send_text_email(self, guild_id: int, chat_id: int, text: str,
-				reply_to: Union[int, None] = None, url: str = None):
-		self.logger.debug("[send_text_email]")
+				reply_to: Union[int, None] = None, url: str = None) -> Message:
+		log.debug("[send_text_email]")
 		channel = self.get_channel(chat_id)
 
 		return await channel.send(
@@ -77,8 +82,8 @@ class GWClient(commands.Bot):
 
 	@filters.wait_on_limit
 	async def send_patch_email(self, mail, guild_id: int, chat_id: int, text: str,
-				reply_to: Union[int, None] = None, url: str = None):
-		self.logger.debug("[send_patch_email]")
+				reply_to: Union[int, None] = None, url: str = None) -> Message:
+		log.debug("[send_patch_email]")
 		tmp, doc, caption, url = utils.prepare_patch(
 			mail, text, url, Platform.DISCORD
 		)

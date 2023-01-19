@@ -3,8 +3,11 @@
 # Copyright (C) 2022  Muhammad Rizki <kiizuha@gnuweeb.org>
 #
 
+import logging
 from discord.ext import commands
 
+
+log = logging.getLogger("dscord")
 
 class OnReady(commands.Cog):
 	def __init__(self, bot: "commands.Bot") -> None:
@@ -23,4 +26,4 @@ class OnReady(commands.Cog):
 		t += f"Send `{prefix}sync` message to the Discord channel "
 		t += "where the bot is running.\n"
 
-		self.bot.logger.info(t)
+		log.info(t)

@@ -7,37 +7,31 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dotenv import load_dotenv
 from mysql import connector
-from pyrogram import idle
 from atom import Scraper
 from telegram.packages import DaemonTelegram
 from telegram.mailer import BotMutexes
 from telegram.mailer import Bot
-from logger import BotLogger
 import os
+import logging
+import logging.config
 
 
 def main():
 	load_dotenv("telegram.env")
 
-	logger = BotLogger()
-	logger.init()
-
-	port = os.getenv("DB_PORT")
-	if not port:
-		port = 3306
-	else:
-		port = int(port)
+	logging.config.fileConfig("telegram/telegram.logger.conf")
+	logging.getLogger("apscheduler").setLevel(logging.WARNING)
+	logging.getLogger("pyrogram").setLevel(logging.WARNING)
 
 	client = DaemonTelegram(
 		"telegram/storage/EmailScraper",
 		api_id=int(os.getenv("API_ID")),
 		api_hash=os.getenv("API_HASH"),
 		bot_token=os.getenv("BOT_TOKEN"),
-		logger=logger,
 		conn=connector.connect(
 			host=os.getenv("DB_HOST"),
 			user=os.getenv("DB_USER"),
-			port=port,
+			port=int(os.environ.get("DB_PORT", 3306)),
 			password=os.getenv("DB_PASS"),
 			database=os.getenv("DB_NAME")
 		),

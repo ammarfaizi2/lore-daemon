@@ -4,6 +4,8 @@
 #
 
 import os
+import logging
+import logging.config
 from dotenv import load_dotenv
 from mysql import connector
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -11,8 +13,6 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from dscord.gnuweeb import GWClient
 from dscord.mailer import Listener
 from dscord.mailer import Mutexes
-from enums.platform import Platform
-from logger import BotLogger
 from atom import Scraper
 
 
@@ -26,24 +26,18 @@ def main():
 		}
 	)
 
-	logger = BotLogger(Platform.DISCORD)
-	logger.init()
-
-	port = os.getenv("DB_PORT")
-	if not port:
-		port = 3306
-	else:
-		port = int(port)
+	logging.config.fileConfig("dscord/discord.logger.conf")
+	logging.getLogger("apscheduler").setLevel(logging.WARNING)
+	logging.getLogger("discord").setLevel(logging.WARNING)
 
 	client = GWClient(
 		db_conn=connector.connect(
 			host=os.getenv("DB_HOST"),
 			user=os.getenv("DB_USER"),
-			port=port,
+			port=int(os.environ.get("DB_PORT", 3306)),
 			password=os.getenv("DB_PASS"),
 			database=os.getenv("DB_NAME")
-		),
-		logger=logger
+		)
 	)
 
 	mailer = Listener(

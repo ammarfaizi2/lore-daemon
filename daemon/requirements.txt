@@ -8,3 +8,5 @@ tgcrypto
 xmltodict
 unicode
 python-slugify
+typing-extensions
+discord.py

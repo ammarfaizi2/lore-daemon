@@ -4,39 +4,38 @@
 #
 
 from pyrogram.errors.exceptions.flood_420 import FloodWait
-from pyrogram.types import Message
-from typing import Any, Callable, TypeVar
+from typing import Any, Callable, TypeVar, Coroutine
+from typing_extensions import ParamSpec, ParamSpecArgs, ParamSpecKwargs
 from functools import wraps
 import re
 import asyncio
+import logging
+
 
 __all__ = ["handle_flood"]
 
-T = TypeVar("T", bound=Message)
+log = logging.getLogger("telegram")
+T = TypeVar("T")
+P = ParamSpec("P")
 
-#
-# TODO(Muhammad Rizki): Add more typing for @handle_flood
-#
-def handle_flood(func: Callable[[T], T]) -> Callable[[T], T]:
+
+def handle_flood(func: Callable[P, Coroutine[Any,Any,T]]) -> Callable[P, Coroutine[Any,Any,T]]:
 	@wraps(func)
-	async def callback(*args: Any) -> Any:
+	async def callback(*args: ParamSpecArgs, **kwargs: ParamSpecKwargs) -> T:
 		while True:
 			try:
-				return await func(*args)
+				return await func(*args, **kwargs)
 			except FloodWait as e:
-				# Calling logger attr from the DaemonTelegram() class
-				logger = args[0].logger
-
-				_flood_exceptions(e, logger)
-				logger.info("Woken up from flood wait...")
+				_flood_exceptions(e)
+				log.info("Woken up from flood wait...")
 	return callback
 
 
-async def _flood_exceptions(e, logger):
+async def _flood_exceptions(e):
 	x = re.search(r"A wait of (\d+) seconds is required", str(e))
 	if not x:
 		raise e
 
 	n = int(x.group(1))
-	logger.info(f"Sleeping for {n} seconds due to Telegram limit")
+	log.info(f"Sleeping for {n} seconds due to Telegram limit")
 	await asyncio.sleep(n)
